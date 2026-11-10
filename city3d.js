@@ -299,7 +299,10 @@ function createStore(index, side){
  const face=side===-1?1:-1;
  // Older masonry upper stories and ground-floor commercial frontage
  const height=17+(index%3)*2.4;
- box(group,9.5,height,3.8,brickMat,0,height/2,-.15);
+ // Open the commercial ground floor so the real interior is visible through the glazing.
+ box(group,9.5,height-6.4,3.8,brickMat,0,6.4+(height-6.4)/2,-.15);
+ box(group,1.0,6.4,3.8,brickMat,-4.25,3.2,-.15);
+ box(group,1.0,6.4,3.8,brickMat,4.25,3.2,-.15);
  box(group,9.8,.62,4.05,concreteMat,0,.38,-.1);
  // facade pilasters and cornice
  for(const px of [-4.45,4.45]){
@@ -512,5 +515,4 @@ function animate(){
  renderer.render(scene,camera);
 }
 animate();
-}
 }
