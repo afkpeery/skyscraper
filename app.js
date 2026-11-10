@@ -25,6 +25,9 @@
     { id: 'd7dLE78wxBE', title: 'Detention', label: 'Opening scene', clip: 'CLIP 0:00–1:00', start: 0, end: 60 }
   ];
 
+  // Share the same source-of-truth catalogue with the Three.js storefront displays.
+  window.__200blockCatalog = { topFilms, archive, clips };
+
   const brick = (f, i) => `
     <a class="brick gif" data-id="${f.id}" href="${yt(f.id)}" target="_blank" rel="noopener"
        aria-label="${f.title}${f.views ? ' — ' + f.views : ''}">
