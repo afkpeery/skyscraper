@@ -106,6 +106,7 @@
   });
 
   addEventListener('wheel', e => {
+    if (window.__200blockInteriorOpen) { e.preventDefault(); return; }
     if (e.target.closest('.reel') && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
     if (e.target.closest('textarea,select')) return;
     e.preventDefault();
@@ -116,12 +117,12 @@
   let tx0 = null;
   addEventListener('touchstart', e => tx0 = e.touches[0].clientX, { passive: true });
   addEventListener('touchmove', e => {
-    if (tx0 == null || e.target.closest('.reel')) return;
+    if (window.__200blockInteriorOpen || tx0 == null || e.target.closest('.reel')) return;
     const d = tx0 - e.touches[0].clientX; tx0 = e.touches[0].clientX;
     st.tx = Math.max(0, Math.min(maxX(), st.tx + d * 1.5));
   }, { passive: true });
   addEventListener('keydown', e => {
-    if (e.target.closest('input,textarea,select')) return;
+    if (window.__200blockInteriorOpen || e.target.closest('input,textarea,select')) return;
     const i = order.indexOf(current());
     if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); goto(order[Math.min(order.length - 1, i + 1)]); }
     if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); goto(order[Math.max(0, i - 1)]); }
