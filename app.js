@@ -134,7 +134,7 @@
     e.preventDefault();
     st.ty = Math.max(0, Math.min(maxY(), st.ty - e.deltaY * 1.1));
     st.trx = 12 + Math.max(-6, Math.min(10, e.deltaY * .05));
-    clearTimeout(tiltT); tiltT = setTimeout(() => st.trx = 12, 180);
+    clearTimeout(tiltT); tiltT = setTimeout(() => st.trx = 18, 180);
   }, { passive: false });
   let ty0 = null;
   addEventListener('touchstart', e => ty0 = e.touches[0].clientY, { passive: true });
