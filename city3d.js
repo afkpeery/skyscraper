@@ -410,7 +410,7 @@ for(let i=0;i<8;i++){car(-7.7,-20-i*29,i%2?0x333c42:0x6b2922);if(i%2===0)car(7.7
 
 const interiorUI=document.createElement('div');
 interiorUI.id='interior-ui';
-interiorUI.innerHTML='<div class="interior-card"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div class="interior-actions"><button type="button" id="interior-explore">Explore portfolio section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
+interiorUI.innerHTML='<div class="interior-card" role="dialog" aria-modal="true" aria-labelledby="interior-title"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div class="interior-actions"><button type="button" id="interior-explore">Explore portfolio section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
 document.body.appendChild(interiorUI);
 const interiorCopy=[
  'A welcoming production-house lobby with a reception desk, brand wall and project displays.',
@@ -461,13 +461,15 @@ function closeInterior(after){
  const outside=worldPoint(group,data.userData.doorX,2.35,11.5);
  const look=worldPoint(group,0,2.5,-2.5);
  const fromPos=camera.position.clone(),fromLook=new THREE.Vector3();camera.getWorldDirection(fromLook);fromLook.multiplyScalar(12).add(camera.position);
- beginCameraTransition([{pos:fromPos,look:fromLook},{pos:worldPoint(group,0,2.4,1.5),look},{pos:outside,look:worldPoint(group,0,2.4,-2.5)}],1250,()=>{
+ beginCameraTransition([{pos:fromPos,look:fromLook},{pos:worldPoint(group,data.userData.doorX,2.4,1.5),look},{pos:outside,look:worldPoint(group,0,2.4,-2.5)}],1250,()=>{
   interiorState.active=false;interiorState.storeId=null;window.__200blockInteriorOpen=false;interiorUI.classList.remove('visible');
   interiorLight.intensity=0;activeInteriorLight=null;
   if(after)after();
  });
 }
+renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','Interactive 3D New York street with clickable storefronts');
 document.getElementById('interior-exit').addEventListener('click',()=>closeInterior());
+addEventListener('keydown',e=>{if(e.key==='Escape'&&interiorState.active)closeInterior();});
 document.getElementById('interior-explore').addEventListener('click',()=>{
  const id=interiorState.storeId;
  closeInterior(()=>{const link=document.querySelector('a[data-floor="'+id+'"]');if(link)link.click();});
