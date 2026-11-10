@@ -72,29 +72,6 @@
   document.addEventListener('focusin', e => { const g = e.target.closest('.gif'); if (g) startGif(g); });
   document.addEventListener('focusout', e => { const g = e.target.closest('.gif'); if (g) stopGif(g); });
 
-  /* Easter egg: camera kid peeking on every floor */
-  const kid = `<svg viewBox="0 0 90 150" aria-hidden="true">
-    <defs><linearGradient id="hood" x1="0" x2="1"><stop offset="0" stop-color="#1b1d24"/><stop offset="1" stop-color="#2d313c"/></linearGradient></defs>
-    <path d="M58 150V80c0-14-8-26-20-28h-8v98z" fill="url(#hood)"/>
-    <path d="M30 18c14-6 30 4 30 22 0 14-8 22-18 22-8 0-12-4-12-4z" fill="#22252e"/>
-    <ellipse cx="38" cy="40" rx="14" ry="16" fill="#8a5a3c"/>
-    <circle cx="33" cy="38" r="2.2" fill="#111"/><path d="M28 33l8-1" stroke="#111" stroke-width="1.6"/>
-    <rect x="2" y="30" width="30" height="20" rx="3" fill="#0d0d10" stroke="#3a3a44"/>
-    <circle cx="6" cy="40" r="7" fill="#111" stroke="#555" stroke-width="2"/><circle cx="6" cy="40" r="3" fill="#2a6cff" opacity=".7"/>
-    <circle class="rec" cx="27" cy="34" r="2" fill="#ff2a2a"/>
-    <path d="M30 50c6 2 12 6 14 14" stroke="#8a5a3c" stroke-width="7" stroke-linecap="round" fill="none"/>
-  </svg>`;
-  document.querySelectorAll('.floor').forEach((f, i) => {
-    const p = document.createElement('div');
-    p.className = 'peeker ' + (i % 2 ? 'l' : 'r');
-    p.style.top = (25 + (i * 17) % 50) + '%';
-    p.title = 'Rolling…';
-    p.innerHTML = kid;
-    p.addEventListener('click', () => { p.title = 'You found the 200Block camera kid. Always rolling.'; p.classList.add('out'); flash('SPOTTED'); });
-    f.appendChild(p);
-    setInterval(() => { p.classList.add('out'); setTimeout(() => p.classList.remove('out'), 1600); }, 9000 + i * 1300);
-  });
-
   /* Camera */
   const tower = document.getElementById('tower'), cam = document.getElementById('camera');
   const floors = [...document.querySelectorAll('.floor')];
