@@ -389,7 +389,7 @@ html,body{height:100%;overflow:hidden;background:#aeb7bb;font-family:Marcellus,G
 #tower.city-block{display:flex;flex-direction:row;align-items:stretch;width:max-content;height:100vh;margin:0;transform-style:preserve-3d;position:relative;isolation:isolate}
 #tower.city-block::before{content:"";position:absolute;z-index:-2;left:0;right:0;top:0;bottom:0;width:auto;transform:none;background:
  linear-gradient(180deg,rgba(185,200,207,.12),rgba(20,24,25,.12) 58%,rgba(8,10,10,.8)),
- url("https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=2400&q=90") center/cover;filter:saturate(.75) contrast(1.08)}
+ url("https://photos.zillowstatic.com/fp/db06a43d1154c51931c3df18aaeda74d-full.webp") center/cover;filter:saturate(.75) contrast(1.08)}
 #tower.city-block::after{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:0;height:22vh;background:
  repeating-linear-gradient(90deg,transparent 0 49vw,rgba(235,227,207,.8) 49vw 50vw),
  linear-gradient(180deg,transparent 0 6%,rgba(25,28,29,.5) 7%,#303333 15%,#111415 100%);
@@ -400,7 +400,7 @@ html,body{height:100%;overflow:hidden;background:#aeb7bb;font-family:Marcellus,G
  background:
  linear-gradient(90deg,rgba(15,18,19,.18),rgba(0,0,0,.04) 12%,rgba(0,0,0,.05) 88%,rgba(0,0,0,.26)),
  linear-gradient(180deg,rgba(192,203,204,.18),rgba(20,21,20,.18) 65%,rgba(8,9,9,.65)),
- url("https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?auto=format&fit=crop&w=1800&q=88") center/cover;
+ url("https://photos.zillowstatic.com/fp/db06a43d1154c51931c3df18aaeda74d-full.webp") center 52%/cover;
  border:0;border-right:7px solid rgba(20,20,18,.88);border-top:0;box-shadow:inset 0 0 70px rgba(0,0,0,.48),18px 0 32px rgba(0,0,0,.25)}
 .floor::before{content:attr(data-store);position:absolute;z-index:4;top:48px;left:50%;transform:translateX(-50%) translateZ(36px);
  width:min(78%,660px);padding:14px 18px 12px;text-align:center;
@@ -430,7 +430,7 @@ h2{font-size:clamp(28px,4vw,52px);color:#f1e5d0;text-shadow:0 3px 8px #000}
 .logo span{color:#c9ad7b}
 .altimeter{font:600 16px Cinzel,serif;color:#d7bd8e;border-color:#a88e61;background:#161817}
 .altimeter small{font:9px Cinzel,serif}
-.lobby{background:linear-gradient(90deg,rgba(0,0,0,.35),transparent),url("https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=1800&q=88") center/cover;text-align:center}
+.lobby{background:linear-gradient(90deg,rgba(0,0,0,.35),transparent),url("https://photos.zillowstatic.com/fp/db06a43d1154c51931c3df18aaeda74d-full.webp") center/cover;text-align:center}
 .lobby .facade{background:rgba(14,16,16,.78)}
 .bricks .wall{background:#2c2822}
 .brick{border:3px solid #3b3027;box-shadow:inset 0 0 14px rgba(0,0,0,.45),0 7px 15px rgba(0,0,0,.55)}
