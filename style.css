@@ -483,3 +483,10 @@ h2{font-size:clamp(28px,4vw,52px);color:#f1e5d0;text-shadow:0 3px 8px #000}
 .floor[data-store]::before{cursor:default}
 #city3d.is-ready{filter:saturate(.92) contrast(1.06)}
 @media(max-width:820px){#city3d{touch-action:pan-y}.floor{background:rgba(7,9,10,.12)!important}}
+
+/* Let the WebGL street receive clicks in the open scene while HTML panels remain usable. */
+#scene{pointer-events:none!important}
+#tower,.floor{pointer-events:none}
+.floor .facade{pointer-events:auto}
+#nav,#foot,#cut{pointer-events:auto}
+#city3d{pointer-events:auto!important}
