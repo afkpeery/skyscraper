@@ -53,7 +53,7 @@
     if (ui.classList.contains('visible')) mount();
   });
   wait.observe(document.body, { childList: true, subtree: true });
-  document.addEventListener('keydown', event => {
+  document.addEventListener('click', event => {\n    const link = event.target.closest('#interior-ui .interior-content a[data-floor]');\n    if (!link) return;\n    event.preventDefault();\n    const destination = link.dataset.floor;\n    document.getElementById('interior-exit')?.click();\n    setTimeout(() => document.querySelector('#nav a[data-floor=\"' + destination + '\"]')?.click(), 1450);\n  });\n\n  document.addEventListener('keydown', event => {
     if (event.key === 'Escape') setTimeout(restore, 1400);
   });
 })();
