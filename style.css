@@ -496,3 +496,23 @@ h2{font-size:clamp(28px,4vw,52px);color:#f1e5d0;text-shadow:0 3px 8px #000}
 #camera{position:relative;z-index:2;pointer-events:none}
 #tower,.floor{pointer-events:none}
 .floor .facade{pointer-events:auto}
+
+
+/* 200BLOCK — immersive storefront interiors */
+#street3d{z-index:1!important}
+#scene{z-index:4}
+#camera{z-index:2}
+#interior-ui{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;padding:28px;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .45s ease,visibility .45s}
+#interior-ui.visible{opacity:1;visibility:visible}
+#interior-ui .interior-card{width:min(680px,calc(100vw - 32px));padding:22px 26px 20px;background:linear-gradient(135deg,rgba(15,12,10,.94),rgba(5,7,9,.91));border:1px solid rgba(219,184,133,.55);box-shadow:0 18px 65px rgba(0,0,0,.65),inset 0 0 28px rgba(204,151,90,.08);backdrop-filter:blur(12px);pointer-events:auto}
+#interior-ui .interior-kicker{font:500 10px Oswald,sans-serif;letter-spacing:.34em;text-transform:uppercase;color:#d8b77e}
+#interior-ui h2{margin:5px 0 4px;font:400 clamp(24px,4vw,38px) Georgia,serif;letter-spacing:.09em;text-transform:uppercase;color:#f4e6cf;text-shadow:0 2px 8px #000}
+#interior-ui p{max-width:58ch;color:#cbbfb0;font:400 13px/1.55 Inter,sans-serif}
+#interior-ui .interior-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+#interior-ui button{padding:10px 15px;border:1px solid #b89b69;background:rgba(31,24,17,.9);color:#f4e6cf;font:500 11px Oswald,sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .2s}
+#interior-ui button:hover{background:#8b5937;transform:translateY(-2px)}
+#interior-ui button.secondary{border-color:rgba(225,215,197,.35);background:rgba(0,0,0,.45)}
+html.webgl-unavailable #street3d{display:none!important}
+html.webgl-unavailable #city{display:block!important;opacity:1!important}
+@media(max-width:640px){#interior-ui{padding:12px}#interior-ui .interior-card{padding:17px}#interior-ui p{font-size:12px}}
+@media(prefers-reduced-motion:reduce){#interior-ui{transition:none}}
