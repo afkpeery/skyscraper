@@ -68,6 +68,14 @@ const asphaltMap = canvasTexture((c,w,h)=>{
   for(let i=0;i<15000;i++){let v=70+Math.random()*80;c.fillStyle='rgba('+v+','+v+','+v+',.10)';c.fillRect(Math.random()*w,Math.random()*h,1,1);}
 },2,8);
 const brickMat = new THREE.MeshStandardMaterial({map:brickMap,roughness:.94});
+/* Real photographed masonry overlays the procedural fallback for natural variation. */
+const photoLoader = new THREE.TextureLoader();
+photoLoader.setCrossOrigin('anonymous');
+photoLoader.load('https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?auto=format&fit=crop&w=1200&q=88', tex=>{
+ tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(2.2,2.2);
+ tex.anisotropy=renderer.capabilities.getMaxAnisotropy();brickMat.map=tex;brickMat.needsUpdate=true;
+},undefined,()=>{ /* Keep the generated brick map if the photo source is unavailable. */ });
+
 const concreteMat = new THREE.MeshStandardMaterial({map:concreteMap,roughness:.96});
 const asphaltMat = new THREE.MeshStandardMaterial({map:asphaltMap,roughness:.92});
 const darkMetal = new THREE.MeshStandardMaterial({color:0x242729,metalness:.72,roughness:.48});
