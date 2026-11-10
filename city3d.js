@@ -78,7 +78,7 @@ photoLoader.load('https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?a
 },undefined,()=>{ /* Keep the generated brick map if the photo source is unavailable. */ });
 
 const concreteMat = new THREE.MeshStandardMaterial({map:concreteMap,roughness:.96});
-const asphaltMat = new THREE.MeshStandardMaterial({map:asphaltMap,roughness:.92});
+const asphaltMat = new THREE.MeshStandardMaterial({map:asphaltMap,roughness:.34,metalness:.22,envMapIntensity:.8});
 const darkMetal = new THREE.MeshStandardMaterial({color:0x242729,metalness:.72,roughness:.48});
 const glassMat = new THREE.MeshPhysicalMaterial({color:0x8ca9b5,metalness:.34,roughness:.13,transparent:true,opacity:.48,reflectivity:.9});
 const trimMat = new THREE.MeshStandardMaterial({color:0x282522,metalness:.3,roughness:.62});
@@ -116,6 +116,15 @@ const streetLength=storeNames.length*29+42;
 
 // Road and sidewalks
 box(scene,13,.22,streetLength,asphaltMat,0,-.12,-streetLength/2+5,false);
+// Rain-darkened road: shallow irregular puddles catch nearby neon and street lamps.
+const puddleMat=new THREE.MeshPhysicalMaterial({color:0x65727a,metalness:.48,roughness:.13,transparent:true,opacity:.62,clearcoat:1,clearcoatRoughness:.08});
+for(let i=0;i<42;i++){
+ const rx=1.2+Math.random()*3.2,rz=.45+Math.random()*1.35;
+ const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,28),puddleMat);
+ mesh.rotation.x=-Math.PI/2;mesh.scale.set(rx,rz,1);
+ mesh.position.set((Math.random()-.5)*9,-.002,-8-i*10.5+Math.random()*5);
+ mesh.receiveShadow=true;scene.add(mesh);
+}
 for(const side of [-1,1]){
  box(scene,5,.42,streetLength,concreteMat,side*9,.05,-streetLength/2+5,false);
  box(scene,.22,.42,streetLength,trimMat,side*6.5,.13,-streetLength/2+5,false);
@@ -403,6 +412,15 @@ function car(x,z,color){
   const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.36,.36,.18,16),darkMetal);wheel.rotation.z=Math.PI/2;wheel.position.set(wx,.25,wz);g.add(wheel);
  }
  box(g,1.85,.12,1.1,new THREE.MeshStandardMaterial({color:0xffd6a0,emissive:0xffb35b,emissiveIntensity:.55}),0,.45,-2.18,false);
+ // Paired headlamps and rear lamps add readable vehicle silhouettes at night.
+ const headMat=new THREE.MeshStandardMaterial({color:0xffe2b1,emissive:0xffc878,emissiveIntensity:2.8,roughness:.25});
+ const tailMat=new THREE.MeshStandardMaterial({color:0x8f171b,emissive:0xff1728,emissiveIntensity:1.65,roughness:.3});
+ for(const lx of [-.72,.72]){
+  box(g,.28,.18,.07,headMat,lx,.72,-2.17,false);
+  box(g,.28,.18,.07,tailMat,lx,.72,2.17,false);
+ }
+ const beam=new THREE.PointLight(0xffd39a,5.5,10,2);
+ beam.position.set(0,.72,-2.35);g.add(beam);
  scene.add(g);
 }
 for(let i=0;i<8;i++){car(-7.7,-20-i*29,i%2?0x333c42:0x6b2922);if(i%2===0)car(7.7,-32-i*31,0x77736a);}
@@ -438,6 +456,26 @@ scene.traverse(object=>{
  if(object.isMesh&&object.material&&object.material.emissive&&object.material.emissiveIntensity>.55)displayMaterials.push(object.material);
 });
 
+// Lightweight 3D rain streaks add depth beyond the existing 2D screen rain.
+const rainCount=520;
+const rainPositions=new Float32Array(rainCount*6);
+for(let i=0;i<rainCount;i++){
+ const x=(Math.random()-.5)*24,y=Math.random()*18,z=-Math.random()*streetLength;
+ const k=i*6;rainPositions[k]=x;rainPositions[k+1]=y;rainPositions[k+2]=z;
+ rainPositions[k+3]=x-.08;rainPositions[k+4]=y-.62;rainPositions[k+5]=z-.04;
+}
+const rainGeometry=new THREE.BufferGeometry();
+rainGeometry.setAttribute('position',new THREE.BufferAttribute(rainPositions,3));
+const rainLines=new THREE.LineSegments(rainGeometry,new THREE.LineBasicMaterial({color:0x9bb6c7,transparent:true,opacity:.28}));
+scene.add(rainLines);
+function updateRain(){
+ const p=rainGeometry.attributes.position.array;
+ for(let i=0;i<rainCount;i++){
+  const k=i*6;p[k+1]-=.34;p[k+4]-=.34;p[k+2]+=.015;p[k+5]+=.015;
+  if(p[k+1]<-.5){const x=(Math.random()-.5)*24,y=12+Math.random()*7,z=-Math.random()*streetLength;p[k]=x;p[k+1]=y;p[k+2]=z;p[k+3]=x-.08;p[k+4]=y-.62;p[k+5]=z-.04;}
+ }
+ rainGeometry.attributes.position.needsUpdate=true;
+}
 const interiorUI=document.createElement('div');
 interiorUI.id='interior-ui';
 interiorUI.innerHTML='<div class="interior-card" role="dialog" aria-modal="true" aria-labelledby="interior-title"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div id="interior-links" class="interior-actions" aria-label="Featured content"></div><div class="interior-actions"><button type="button" id="interior-explore">Explore full section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
@@ -538,6 +576,7 @@ addEventListener('resize',resize);
 function animate(){
  requestAnimationFrame(animate);
  const elapsed=clock.getElapsedTime();
+ updateRain();
  for(const actor of streetActors){
   actor.actor.position.z=actor.baseZ+Math.sin(elapsed*actor.speed+actor.phase)*.9;
   actor.actor.position.x=actor.side*5.55+Math.sin(elapsed*.55+actor.phase)*.28;
@@ -545,6 +584,7 @@ function animate(){
   actor.legs[1].rotation.x=-Math.sin(elapsed*actor.speed*3+actor.phase)*.22;
   actor.actor.rotation.y=actor.side===1?Math.PI:0;
  }
+ // Fine rain streaks descend through the scene; reuse one buffer for low overhead.
  const pulse=.82+Math.sin(elapsed*1.4)*.18;
  for(const material of displayMaterials)material.emissiveIntensity=Math.min(2.5,Math.max(.35,pulse));
  if(interiorState.transition){
