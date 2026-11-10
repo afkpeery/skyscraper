@@ -408,6 +408,36 @@ function car(x,z,color){
 for(let i=0;i<8;i++){car(-7.7,-20-i*29,i%2?0x333c42:0x6b2922);if(i%2===0)car(7.7,-32-i*31,0x77736a);}
 
 
+
+/* Living street layer: restrained pedestrians, animated storefront displays and practical light breathing. */
+const streetActors=[];
+const displayMaterials=[];
+const pedestrianMaterials={
+ coat:new THREE.MeshStandardMaterial({color:0x34383a,roughness:.94}),
+ coatAlt:new THREE.MeshStandardMaterial({color:0x59463b,roughness:.92}),
+ skin:new THREE.MeshStandardMaterial({color:0x9a7158,roughness:.95}),
+ trousers:new THREE.MeshStandardMaterial({color:0x202326,roughness:.96}),
+ shoes:new THREE.MeshStandardMaterial({color:0x17191a,roughness:.8})
+};
+function pedestrian(x,z,index){
+ const actor=new THREE.Group();actor.position.set(x,0,z);
+ const coat=index%2?pedestrianMaterials.coatAlt:pedestrianMaterials.coat;
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.23,.62,3,7),coat);torso.position.y=1.12;torso.castShadow=true;actor.add(torso);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),pedestrianMaterials.skin);head.position.y=1.72;head.castShadow=true;actor.add(head);
+ const legs=[];
+ for(const dx of [-.13,.13]){
+  const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.085,.48,2,6),pedestrianMaterials.trousers);leg.position.set(dx,.48,0);leg.castShadow=true;actor.add(leg);legs.push(leg);
+  const shoe=new THREE.Mesh(new THREE.BoxGeometry(.16,.09,.29),pedestrianMaterials.shoes);shoe.position.set(dx,.12,-.055);actor.add(shoe);
+ }
+ scene.add(actor);streetActors.push({actor,legs,baseZ:z,phase:index*1.7,speed:.65+index%3*.12,side:x<0?-1:1});
+}
+for(let i=0;i<8;i++){
+ pedestrian(i%2?-5.55:5.55,-14-i*27,i);
+}
+scene.traverse(object=>{
+ if(object.isMesh&&object.material&&object.material.emissive&&object.material.emissiveIntensity>.55)displayMaterials.push(object.material);
+});
+
 const interiorUI=document.createElement('div');
 interiorUI.id='interior-ui';
 interiorUI.innerHTML='<div class="interior-card" role="dialog" aria-modal="true" aria-labelledby="interior-title"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div class="interior-actions"><button type="button" id="interior-explore">Explore portfolio section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
@@ -499,6 +529,16 @@ function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMa
 addEventListener('resize',resize);
 function animate(){
  requestAnimationFrame(animate);
+ const elapsed=clock.getElapsedTime();
+ for(const actor of streetActors){
+  actor.actor.position.z=actor.baseZ+Math.sin(elapsed*actor.speed+actor.phase)*.9;
+  actor.actor.position.x=actor.side*5.55+Math.sin(elapsed*.55+actor.phase)*.28;
+  actor.legs[0].rotation.x=Math.sin(elapsed*actor.speed*3+actor.phase)*.22;
+  actor.legs[1].rotation.x=-Math.sin(elapsed*actor.speed*3+actor.phase)*.22;
+  actor.actor.rotation.y=actor.side===1?Math.PI:0;
+ }
+ const pulse=.82+Math.sin(elapsed*1.4)*.18;
+ for(const material of displayMaterials)material.emissiveIntensity=Math.min(2.5,Math.max(.35,pulse));
  if(interiorState.transition){
   const tr=interiorState.transition,t=Math.min(1,(performance.now()-tr.start)/tr.duration);
   const scaled=t*(tr.points.length-1),segment=Math.min(tr.points.length-2,Math.floor(scaled)),local=scaled-segment;
