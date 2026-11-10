@@ -7,7 +7,8 @@ scene.fog = new THREE.Fog(0xaebdc4, 42, 245);
 
 const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, .1, 420);
 camera.position.set(0, 2.35, 8);
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+const renderer = (() => { try { return new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (error) { document.documentElement.classList.add('webgl-unavailable'); console.warn('200Block 3D scene unavailable; retaining the 2D portfolio fallback.', error); return null; } })();
+if (!renderer) { /* The existing photographic city canvas and HTML portfolio remain usable. */ } else {
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
@@ -83,8 +84,11 @@ const glassMat = new THREE.MeshPhysicalMaterial({color:0x8ca9b5,metalness:.34,ro
 const trimMat = new THREE.MeshStandardMaterial({color:0x282522,metalness:.3,roughness:.62});
 const brassMat = new THREE.MeshStandardMaterial({color:0xb79a69,metalness:.72,roughness:.3});
 
+const boxGeometryCache = new Map();
 function box(parent,w,h,d,mat,x,y,z,cast=true){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  const key=[w,h,d].join(':');
+  if(!boxGeometryCache.has(key)) boxGeometryCache.set(key,new THREE.BoxGeometry(w,h,d));
+  const m=new THREE.Mesh(boxGeometryCache.get(key),mat);
   m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;parent.add(m);return m;
 }
 function signTexture(text){
@@ -142,6 +146,150 @@ function addFireEscape(group, x, y, z){
   }
  }
 }
+
+const interiorMaterials = {
+  oak:new THREE.MeshStandardMaterial({color:0x68452f,roughness:.78}),
+  darkOak:new THREE.MeshStandardMaterial({color:0x30241d,roughness:.72}),
+  plaster:new THREE.MeshStandardMaterial({color:0xb6a58d,roughness:.94}),
+  charcoal:new THREE.MeshStandardMaterial({color:0x24282a,roughness:.9}),
+  tile:new THREE.MeshStandardMaterial({color:0x68635b,roughness:.92}),
+  brass:new THREE.MeshStandardMaterial({color:0xb69a6a,metalness:.7,roughness:.32}),
+  upholstery:new THREE.MeshStandardMaterial({color:0x55362f,roughness:.95}),
+  cream:new THREE.MeshStandardMaterial({color:0xd8c7aa,roughness:.86}),
+  screen:new THREE.MeshStandardMaterial({color:0x101b24,emissive:0x16374b,emissiveIntensity:.9,roughness:.3}),
+  warm:new THREE.MeshStandardMaterial({color:0xffd49b,emissive:0xffa94e,emissiveIntensity:1.35,roughness:.4}),
+  green:new THREE.MeshStandardMaterial({color:0x315044,roughness:.9})
+};
+function cylinder(parent,rTop,rBottom,h,material,x,y,z,segments=12){
+ const mesh=new THREE.Mesh(new THREE.CylinderGeometry(rTop,rBottom,h,segments),material);
+ mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+}
+function plant(room,x,z){
+ cylinder(room,.24,.3,.48,interiorMaterials.darkOak,x,.42,z,12);
+ for(let i=0;i<6;i++){
+  const leaf=box(room,.12,.95,.16,interiorMaterials.green,x+Math.sin(i)*.22,.95+i%2*.12,z+Math.cos(i)*.2);
+  leaf.rotation.z=(i-2.5)*.22;
+ }
+}
+function screenPanel(room,x,y,z,w,h){
+ box(room,w+.16,h+.16,.12,interiorMaterials.darkOak,x,y,z);
+ box(room,w,h,.035,interiorMaterials.screen,x,y,z+.085,false);
+ box(room,w*.16,.035,.025,interiorMaterials.warm,x,y-h*.39,z+.11,false);
+}
+function counter(room,x,z,w=3){
+ box(room,w,.95,.82,interiorMaterials.darkOak,x,.75,z);
+ box(room,w+.08,.12,.9,interiorMaterials.brass,x,1.28,z);
+ box(room,w-.2,.08,.04,interiorMaterials.oak,x,.38,z+.43);
+ screenPanel(room,x,1.85,z-.22,.72,.42);
+}
+function chair(room,x,z,material=interiorMaterials.upholstery){
+ box(room,.85,.18,.78,material,x,.72,z);
+ box(room,.85,.9,.16,material,x,1.2,z-.34);
+ for(const dx of [-.32,.32])for(const dz of [-.27,.27])box(room,.07,.65,.07,interiorMaterials.darkOak,x+dx,.36,z+dz);
+}
+function poster(room,x,y,z,label){
+ box(room,1.12,1.58,.09,interiorMaterials.brass,x,y,z);
+ box(room,.94,1.4,.035,interiorMaterials.charcoal,x,y,z+.065);
+ const glow=new THREE.Mesh(new THREE.PlaneGeometry(.82,1.25),new THREE.MeshStandardMaterial({color:0x8a4d37,emissive:0x3d1d16,emissiveIntensity:.7,roughness:.7}));
+ glow.position.set(x,y,z+.09);room.add(glow);
+}
+function recordRack(room,x,z){
+ box(room,1.5,1.25,.62,interiorMaterials.oak,x,.9,z);
+ box(room,1.42,.07,.68,interiorMaterials.brass,x,1.55,z);
+ for(let n=0;n<7;n++){
+  const disc=cylinder(room,.27,.27,.035,n%2?interiorMaterials.charcoal:interiorMaterials.upholstery,x-.58+n*.19,1.05,z-.05,16);
+  disc.rotation.x=Math.PI/2;
+ }
+}
+function buildInterior(storeGroup,index,side){
+ const room=new THREE.Group();room.name='interior-'+storeIds[index]+'-'+side;storeGroup.add(room);
+ const floorMat=[interiorMaterials.oak,interiorMaterials.upholstery,interiorMaterials.charcoal,interiorMaterials.tile,interiorMaterials.oak,interiorMaterials.darkOak,interiorMaterials.tile,interiorMaterials.cream][index];
+ const wallMat=[interiorMaterials.plaster,interiorMaterials.charcoal,interiorMaterials.charcoal,interiorMaterials.charcoal,interiorMaterials.plaster,interiorMaterials.green,interiorMaterials.charcoal,interiorMaterials.plaster][index];
+ // Deep, open-front room: glazing remains transparent so the street view reads into the space.
+ box(room,8.55,.18,10.4,floorMat,0,.18,-3.25);
+ box(room,8.55,.14,10.4,interiorMaterials.charcoal,0,5.52,-3.25,false);
+ box(room,.16,5.25,10.4,wallMat,-4.28,2.82,-3.25);
+ box(room,.16,5.25,10.4,wallMat,4.28,2.82,-3.25);
+ box(room,8.55,5.25,.18,wallMat,0,2.82,-8.42);
+ for(const x of [-4.12,4.12])box(room,.12,.22,10.1,interiorMaterials.brass,x,.42,-3.25);
+ box(room,8.3,.22,.12,interiorMaterials.brass,0,.42,-8.28);
+ // Ceiling beams and practical fixtures create visible depth through the shop windows.
+ for(const z of [-1.2,-4.2,-7.3]){
+  box(room,8.1,.12,.16,interiorMaterials.darkOak,0,5.34,z);
+  for(const x of [-2.7,0,2.7])box(room,.22,.08,.5,interiorMaterials.warm,x,5.23,z);
+ }
+ // Back wall title plaque and a slim brass picture rail.
+ const plaque=new THREE.Mesh(new THREE.PlaneGeometry(4.6,.62),new THREE.MeshStandardMaterial({map:signTexture(storeNames[index]),emissive:0x302012,emissiveIntensity:.42,roughness:.52}));
+ plaque.position.set(0,4.75,-8.29);room.add(plaque);
+ box(room,7.9,.045,.07,interiorMaterials.brass,0,4.12,-8.29);
+ if(index===0){
+  // 200BLOCK lobby: reception, brand wall, monitor and waiting lounge.
+  counter(room,0,-5.65,3.6);screenPanel(room,0,3.0,-8.25,2.8,1.15);
+  chair(room,-2.25,-2.9);chair(room,2.25,-2.9);plant(room,-3.55,-6.9);plant(room,3.55,-6.9);
+  poster(room,-2.6,3.05,-8.28,'200BLOCK');poster(room,2.6,3.05,-8.28,'PRODUCTION');
+ }else if(index===1){
+  // THEATER: intimate screening room with a projection screen and tiered seats.
+  screenPanel(room,0,3.55,-8.24,5.9,2.15);
+  for(let row=0;row<3;row++)for(let col=0;col<5;col++){
+   const x=(col-2)*1.48,z=-5.7+row*1.45;
+   chair(room,x,z,new THREE.MeshStandardMaterial({color:row%2?0x713b32:0x38231f,roughness:.96}));
+  }
+  for(const x of [-3.3,3.3])box(room,.08,2.6,.08,interiorMaterials.brass,x,1.4,-3.7);
+ }else if(index===2){
+  // CINEMA: ticket booth, illuminated film posters and reel displays.
+  counter(room,-2.2,-5.8,2.4);screenPanel(room,1.7,2.6,-8.25,2.4,1.25);
+  for(const x of [-3,0,3])poster(room,x,3.0,-8.27,'FILM');
+  for(const x of [-2.5,0,2.5]){cylinder(room,.55,.55,.08,interiorMaterials.brass,x,4.25,-8.15,24).rotation.x=Math.PI/2;cylinder(room,.13,.13,.1,interiorMaterials.charcoal,x,4.25,-8.07,16).rotation.x=Math.PI/2;}
+  plant(room,3.6,-6.8);
+ }else if(index===3){
+  // VIDEO ARCADE: glowing cabinets, control decks and a social bench.
+  for(let n=0;n<5;n++){
+   const x=-3.2+n*1.6;
+   box(room,.92,1.9,.78,interiorMaterials.darkOak,x,1.15,-5.9);
+   box(room,.74,.78,.06,interiorMaterials.brass,x,1.55,-5.48);
+   screenPanel(room,x,1.58,-5.42,.58,.48);
+   box(room,.66,.12,.42,interiorMaterials.upholstery,x,.88,-5.25);
+   cylinder(room,.09,.09,.16,interiorMaterials.warm,x-.2,.94,-5.02,10);
+   cylinder(room,.09,.09,.16,interiorMaterials.brass,x+.18,.94,-5.02,10);
+  }
+  box(room,5.8,.55,1.1,interiorMaterials.upholstery,0,.48,-2.8);
+  for(const x of [-3.3,3.3])poster(room,x,3.15,-8.27,'ARCADE');
+ }else if(index===4){
+  // PROJECTS: production planning room with edit monitors and a storyboard wall.
+  counter(room,0,-4.35,4.2);
+  for(const x of [-2.7,-.9,.9,2.7])poster(room,x,3.2,-8.27,'FRAME');
+  screenPanel(room,0,2.15,-8.25,2.4,1.05);
+  for(const x of [-2.2,2.2])chair(room,x,-2.4);
+  box(room,3.4,.12,1.7,interiorMaterials.oak,0,1.05,-3.8);
+  plant(room,-3.6,-6.9);
+ }else if(index===5){
+  // RECORD SHOP: wall shelving, record bins, listening station and album displays.
+  for(const x of [-2.9,0,2.9]){
+   box(room,1.65,2.8,.42,interiorMaterials.darkOak,x,2.1,-7.85);
+   for(let y=1.2;y<3.5;y+=.75)box(room,1.5,.07,.48,interiorMaterials.brass,x,y,-7.55);
+   for(let n=0;n<5;n++)box(room,.22,.85,.12,n%2?interiorMaterials.upholstery:interiorMaterials.cream,x-.6+n*.3,1.7,-7.42);
+  }
+  recordRack(room,-2.3,-3.8);recordRack(room,0,-3.8);recordRack(room,2.3,-3.8);
+  counter(room,0,-6.2,2.2);
+ }else if(index===6){
+  // STUDIO: editing desk, cinema camera, tripod, softbox and acoustic panels.
+  counter(room,0,-5.7,3.8);screenPanel(room,-1,2.65,-8.25,1.5,.9);screenPanel(room,1,2.65,-8.25,1.5,.9);
+  for(const x of [-3.4,3.4])for(let y=1.2;y<4.4;y+=1.1)box(room,.12,.75,.16,interiorMaterials.upholstery,x,y,-8.22);
+  cylinder(room,.06,.06,2.3,interiorMaterials.charcoal,2.65,1.2,-3.2,10);
+  for(let a=0;a<3;a++)box(room,.06,1.1,.06,interiorMaterials.charcoal,2.65+Math.cos(a*2.1)*.45,.55,-3.2+Math.sin(a*2.1)*.45);
+  box(room,.65,.5,.48,interiorMaterials.darkOak,2.65,2.35,-3.2);
+  box(room,.95,1.5,.18,interiorMaterials.cream,-3.2,3.1,-3.7);
+  plant(room,3.6,-7);
+ }else{
+  // CONTACT: warm reception lounge with seating, plants and a meeting table.
+  counter(room,0,-6.2,3.2);chair(room,-2.3,-3.4);chair(room,2.3,-3.4);
+  box(room,2.4,.16,1.3,interiorMaterials.oak,0,.85,-3.4);
+  plant(room,-3.5,-6.9);plant(room,3.5,-6.9);
+  poster(room,-2.7,3.0,-8.27,'HELLO');poster(room,2.7,3.0,-8.27,'CONTACT');
+ }
+ return room;
+}
+
 function createStore(index, side){
  const group=new THREE.Group();
  const z=-13-index*29;
@@ -168,7 +316,7 @@ function createStore(index, side){
  box(group,.09,3.08,.1,brassMat,doorX+.53,1.98,2.14);
  const winX=side===-1?-1.35:1.35;
  box(group,3.6,3.05,.18,trimMat,winX,2,1.95);
- box(group,3.35,2.8,.06,litWindow,winX,2.02,2.08);
+ box(group,3.35,2.8,.06,glassMat,winX,2.02,2.08);
  for(const dx of [-1.1,0,1.1])box(group,.045,2.78,.08,brassMat,winX+dx,2.02,2.14);
  box(group,3.42,.08,.09,brassMat,winX,2.02,2.16);
  // Deep sign box projects above the storefront
@@ -191,10 +339,11 @@ function createStore(index, side){
  // Roof parapet and side depth
  box(group,9.7,.38,4.05,concreteMat,0,height-.18,-.1);
  box(group,.22,height,4.05,trimMat,-4.82,height/2,-.1);
- // Projecting shop sign, individual clickable object
- const hit=box(group,6.05,1.05,.95,new THREE.MeshBasicMaterial({transparent:true,opacity:0}),0,6.95,2.2,false);
- hit.userData.storeId=storeIds[index];hit.userData.storeName=storeNames[index];interactive.push(hit);
- hit.userData.label=storeNames[index];
+ // Full-depth, purpose-built interior visible through the real glass storefront.
+ buildInterior(group,index,side);
+ // Transparent interaction volume covers the actual door and display frontage.
+ const hit=box(group,8.15,4.85,.16,new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}),0,3.05,2.72,false);
+ hit.userData.storeId=storeIds[index];hit.userData.storeName=storeNames[index];hit.userData.storeIndex=index;hit.userData.storeGroup=group;hit.userData.side=side;hit.userData.doorX=side===-1?2.65:-2.65;interactive.push(hit);
  if(index%2===0)addFireEscape(group,side===-1?4.65:-4.65,8,-.2);
  // rooftop water tank / vent gives skyline silhouette
  if(index%3===1){
@@ -255,7 +404,73 @@ function car(x,z,color){
 }
 for(let i=0;i<8;i++){car(-7.7,-20-i*29,i%2?0x333c42:0x6b2922);if(i%2===0)car(7.7,-32-i*31,0x77736a);}
 
-// Click / hover signs navigate into existing portfolio sections.
+
+const interiorUI=document.createElement('div');
+interiorUI.id='interior-ui';
+interiorUI.innerHTML='<div class="interior-card"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div class="interior-actions"><button type="button" id="interior-explore">Explore portfolio section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
+document.body.appendChild(interiorUI);
+const interiorCopy=[
+ 'A welcoming production-house lobby with a reception desk, brand wall and project displays.',
+ 'A private screening room with tiered seating and a large projection wall.',
+ 'A cinema gallery for featured films, posters, reels and the stories behind each production.',
+ 'A glowing arcade of short-form clips, highlights and playable video moments.',
+ 'A production room for upcoming projects, storyboards, treatments and development.',
+ 'A neighborhood record shop celebrating the 200Block archive and its creative releases.',
+ 'A working production studio with editing monitors, camera equipment and lighting.',
+ 'A warm front desk for consultations, collaborations and new business inquiries.'
+];
+const interiorState={active:false,transition:null,storeId:null};
+let activeInteriorLight=null;
+const interiorLight=new THREE.PointLight(0xffc58b,0,16,2);scene.add(interiorLight);
+function worldPoint(group,x,y,z){return group.localToWorld(new THREE.Vector3(x,y,z));}
+function beginCameraTransition(points,duration,onComplete){
+ interiorState.transition={start:performance.now(),duration,points:points.map(p=>({pos:p.pos.clone(),look:p.look.clone()})),onComplete};
+}
+function openInterior(data){
+ if(interiorState.active||interiorState.transition)return;
+ const group=data.storeGroup,index=data.storeIndex;
+ if(!group)return;
+ interiorState.active=true;interiorState.storeId=data.storeId;window.__200blockInteriorOpen=true;
+ const outside=worldPoint(group,data.doorX,2.35,11.5);
+ const threshold=worldPoint(group,data.doorX,2.35,1.45);
+ const inside=worldPoint(group,0,2.45,-1.55);
+ const lookOutside=worldPoint(group,0,2.5,-1.8);
+ const lookInside=worldPoint(group,0,2.55,-7.2);
+ const fromPos=camera.position.clone(),fromLook=new THREE.Vector3();
+ camera.getWorldDirection(fromLook);fromLook.multiplyScalar(12).add(camera.position);
+ beginCameraTransition([
+  {pos:fromPos,look:fromLook},
+  {pos:outside,look:lookOutside},
+  {pos:threshold,look:lookInside},
+  {pos:inside,look:lookInside}
+ ],1900,()=>{
+  interiorLight.position.copy(worldPoint(group,0,4.1,-4.6));interiorLight.intensity=28;activeInteriorLight=interiorLight;
+ });
+ document.getElementById('interior-title').textContent=storeNames[index];
+ document.getElementById('interior-description').textContent=interiorCopy[index];
+ interiorUI.classList.add('visible');
+}
+function closeInterior(after){
+ if(!interiorState.active||interiorState.transition)return;
+ const data=interactive.find(o=>o.userData.storeId===interiorState.storeId);
+ if(!data){interiorState.active=false;window.__200blockInteriorOpen=false;interiorUI.classList.remove('visible');return;}
+ const group=data.userData.storeGroup;
+ const outside=worldPoint(group,data.userData.doorX,2.35,11.5);
+ const look=worldPoint(group,0,2.5,-2.5);
+ const fromPos=camera.position.clone(),fromLook=new THREE.Vector3();camera.getWorldDirection(fromLook);fromLook.multiplyScalar(12).add(camera.position);
+ beginCameraTransition([{pos:fromPos,look:fromLook},{pos:worldPoint(group,0,2.4,1.5),look},{pos:outside,look:worldPoint(group,0,2.4,-2.5)}],1250,()=>{
+  interiorState.active=false;interiorState.storeId=null;window.__200blockInteriorOpen=false;interiorUI.classList.remove('visible');
+  interiorLight.intensity=0;activeInteriorLight=null;
+  if(after)after();
+ });
+}
+document.getElementById('interior-exit').addEventListener('click',()=>closeInterior());
+document.getElementById('interior-explore').addEventListener('click',()=>{
+ const id=interiorState.storeId;
+ closeInterior(()=>{const link=document.querySelector('a[data-floor="'+id+'"]');if(link)link.click();});
+});
+
+// Click / hover signs open the matching physical interior.
 const raycaster=new THREE.Raycaster(), pointer=new THREE.Vector2();
 renderer.domElement.addEventListener('pointermove',e=>{
  const r=renderer.domElement.getBoundingClientRect();
@@ -269,7 +484,7 @@ renderer.domElement.addEventListener('click',e=>{
  pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
  raycaster.setFromCamera(pointer,camera);
  const hit=raycaster.intersectObjects(interactive,false)[0];
- if(hit){const id=hit.object.userData.storeId;document.querySelector('a[data-floor="'+id+'"]')?.click();}
+ if(hit){openInterior(hit.object.userData);}
 });
 
 // Camera progress is driven by the existing site's smoothed scroll physics.
@@ -279,12 +494,23 @@ function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMa
 addEventListener('resize',resize);
 function animate(){
  requestAnimationFrame(animate);
- const progress=window.__200blockProgress||0;
- targetZ=8-progress*(storeNames.length*29+12);
- currentZ+=(targetZ-currentZ)*.055;
- currentLookX+=(targetLookX-currentLookX)*.05;
- camera.position.set(currentLookX,2.35,currentZ);
- camera.lookAt(currentLookX*.7,2.9,currentZ-19);
+ if(interiorState.transition){
+  const tr=interiorState.transition,t=Math.min(1,(performance.now()-tr.start)/tr.duration);
+  const scaled=t*(tr.points.length-1),segment=Math.min(tr.points.length-2,Math.floor(scaled)),local=scaled-segment;
+  const eased=local*local*(3-2*local),a=tr.points[segment],b=tr.points[segment+1];
+  camera.position.lerpVectors(a.pos,b.pos,eased);
+  const look=new THREE.Vector3().lerpVectors(a.look,b.look,eased);camera.lookAt(look);
+  if(t>=1){const done=tr.onComplete;interiorState.transition=null;if(done)done();}
+ }else if(!interiorState.active){
+  const progress=window.__200blockProgress||0;
+  targetZ=8-progress*(storeNames.length*29+12);
+  currentZ+=(targetZ-currentZ)*.055;
+  currentLookX+=(targetLookX-currentLookX)*.05;
+  camera.position.set(currentLookX,2.35,currentZ);
+  camera.lookAt(currentLookX*.7,2.9,currentZ-19);
+ }
  renderer.render(scene,camera);
 }
 animate();
+}
+}
