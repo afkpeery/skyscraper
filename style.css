@@ -516,3 +516,9 @@ html.webgl-unavailable #street3d{display:none!important}
 html.webgl-unavailable #city{display:block!important;opacity:1!important}
 @media(max-width:640px){#interior-ui{padding:12px}#interior-ui .interior-card{padding:17px}#interior-ui p{font-size:12px}}
 @media(prefers-reduced-motion:reduce){#interior-ui{transition:none}}
+
+#interior-links{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+#interior-links button{flex:1 1 135px;min-width:0;white-space:normal;line-height:1.35;text-align:left;border-color:rgba(216,183,126,.55);background:linear-gradient(135deg,rgba(105,67,43,.48),rgba(20,19,18,.9))}
+#interior-links button:focus-visible,#interior-ui button:focus-visible{outline:2px solid #f0cb8e;outline-offset:3px}
+#interior-ui .interior-card{max-height:min(78vh,620px);overflow:auto}
+@media(max-width:640px){#interior-links button{flex-basis:calc(50% - 8px);font-size:10px;padding:9px}}
