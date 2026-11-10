@@ -67,7 +67,7 @@ const asphaltMap = canvasTexture((c,w,h)=>{
   c.fillStyle='#292c2d';c.fillRect(0,0,w,h);
   for(let i=0;i<15000;i++){let v=70+Math.random()*80;c.fillStyle='rgba('+v+','+v+','+v+',.10)';c.fillRect(Math.random()*w,Math.random()*h,1,1);}
 },2,8);
-const brickMat = new THREE.MeshStandardMaterial({map:brickMap,roughness:.94});
+const brickMat = new THREE.MeshStandardMaterial({map:brickMap,bumpMap:brickMap,bumpScale:.16,roughness:.94});
 /* Real photographed masonry overlays the procedural fallback for natural variation. */
 const photoLoader = new THREE.TextureLoader();
 photoLoader.setCrossOrigin('anonymous');
