@@ -330,3 +330,7 @@ h1,h2,h3,.title-xl,.featInfo h3{font-family:"Permanent Marker",cursive;letter-sp
 @keyframes stormFlash{0%,84%,88%,100%{opacity:0}85%,87%{opacity:1}86%{opacity:.45}}
 .roof::after{content:"";position:absolute;inset:-180px -20vw auto;height:260px;pointer-events:none;background:radial-gradient(ellipse at 50% 100%,rgba(105,175,255,.17),transparent 65%)}
 @media(max-width:760px){#tower{width:94vw;margin-left:-47vw}#tower::before{width:180px}#scene{perspective:1250px}.roof{height:210px}#roofStatue{width:130px;height:180px}#roofLightning{top:-300px;height:330px;width:170px}}
+
+
+/* Film and clip names remain typographically distinct from graffiti UI lettering */
+.brick .spray,.screen h3,.featInfo h3{font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.035em;text-transform:uppercase;color:#fff0dc;text-shadow:2px 3px 0 #100b08,0 0 8px rgba(0,0,0,.9);filter:none}
