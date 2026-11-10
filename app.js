@@ -126,7 +126,7 @@
     if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); goto(order[Math.min(order.length - 1, i + 1)]); }
     if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); goto(order[Math.max(0, i - 1)]); }
   });
-  addEventListener('pointermove', e => { st.mx = e.clientX / innerWidth - .5; st.my = e.clientY / innerHeight - .5; });
+  addEventListener('pointermove', e => { st.mx = e.clientX / innerWidth - .5; st.my = e.clientY / innerHeight - .5; window.__pointerX = e.clientX; });
   document.addEventListener('focusin', e => { const f = e.target.closest('.floor'); if (f && f.id !== current()) st.tx = Math.max(0, Math.min(maxX(), leftOf(f.id))); });
 
   function current() {
