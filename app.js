@@ -146,6 +146,7 @@
   let last = '';
   (function loop() {
     st.x += (st.tx - st.x) * .075; st.z += (st.tz - st.z) * .045;
+    window.__200blockProgress = maxX() > 0 ? st.x / maxX() : 0;
     st.rx += (st.trx - st.rx) * .06; st.ry += (st.try - st.ry) * .04;
     const ry = st.ry + st.mx * 3, rx = st.rx - st.my * 2;
     cam.style.transform = `translate3d(${(-st.x).toFixed(1)}px,0,${st.z.toFixed(1)}px)`;
