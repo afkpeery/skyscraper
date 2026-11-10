@@ -1,4 +1,4 @@
-/* 200Block — Skyscraper edition */
+/* 200Block — immersive city block edition */
 (() => {
   const yt = id => `https://www.youtube.com/watch?v=${id}`;
 
@@ -78,17 +78,17 @@
   const order = ['home', 'featured', 'top-films', 'highlights', 'upcoming', 'archive', 'consultations', 'contact'];
   const navLinks = [...document.querySelectorAll('#nav nav a')];
   const floorNum = document.getElementById('floorNum');
-  const st = { y: 0, ty: 0, z: -3100, tz: -3100, rx: 29, trx: 29, ry: -36, try: -36, mx: 0, my: 0 };
-  const maxY = () => tower.offsetHeight - innerHeight;
-  const topOf = id => { const el = document.getElementById(id); return el.offsetTop + Math.min(0, (el.offsetHeight - innerHeight) / 2) - 70; };
+  const st = { x: 0, tx: 0, z: -1700, tz: -1700, rx: 12, trx: 12, ry: -12, try: -12, mx: 0, my: 0 };
+  const maxX = () => tower.scrollWidth - innerWidth;
+  const leftOf = id => { const el = document.getElementById(id); return el.offsetLeft + Math.max(0, (el.offsetWidth - innerWidth) / 2); };
   let tiltT;
 
   function goto(id, push = true) {
     if (!document.getElementById(id)) return;
-    st.ty = Math.max(0, Math.min(maxY(), topOf(id)));
-    st.tz = -1100; st.trx = 31; st.try = -38;
+    st.tx = Math.max(0, Math.min(maxX(), leftOf(id)));
+    st.tz = -850; st.trx = 10; st.try = -18;
     clearTimeout(goto.t);
-    goto.t = setTimeout(() => { st.tz = 0; st.trx = 18; st.try = -30; }, 650);
+    goto.t = setTimeout(() => { st.tz = -350; st.trx = 7; st.try = -12; }, 650);
     flash('ACTION');
     if (push) history.replaceState(null, '', '#' + id);
   }
@@ -109,48 +109,48 @@
     if (e.target.closest('.reel') && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
     if (e.target.closest('textarea,select')) return;
     e.preventDefault();
-    st.ty = Math.max(0, Math.min(maxY(), st.ty - e.deltaY * 1.1));
-    st.trx = 12 + Math.max(-6, Math.min(10, e.deltaY * .05));
-    clearTimeout(tiltT); tiltT = setTimeout(() => st.trx = 18, 180);
+    st.tx = Math.max(0, Math.min(maxX(), st.tx + (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * 1.15));
+    st.trx = 9 + Math.max(-3, Math.min(5, e.deltaY * .025));
+    clearTimeout(tiltT); tiltT = setTimeout(() => st.trx = 7, 180);
   }, { passive: false });
-  let ty0 = null;
-  addEventListener('touchstart', e => ty0 = e.touches[0].clientY, { passive: true });
+  let tx0 = null;
+  addEventListener('touchstart', e => tx0 = e.touches[0].clientX, { passive: true });
   addEventListener('touchmove', e => {
-    if (ty0 == null || e.target.closest('.reel')) return;
-    const d = ty0 - e.touches[0].clientY; ty0 = e.touches[0].clientY;
-    st.ty = Math.max(0, Math.min(maxY(), st.ty - d * 1.6));
+    if (tx0 == null || e.target.closest('.reel')) return;
+    const d = tx0 - e.touches[0].clientX; tx0 = e.touches[0].clientX;
+    st.tx = Math.max(0, Math.min(maxX(), st.tx + d * 1.5));
   }, { passive: true });
   addEventListener('keydown', e => {
     if (e.target.closest('input,textarea,select')) return;
     const i = order.indexOf(current());
-    if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); goto(order[Math.min(order.length - 1, i + 1)]); }
-    if (['ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); goto(order[Math.max(0, i - 1)]); }
+    if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); goto(order[Math.min(order.length - 1, i + 1)]); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); goto(order[Math.max(0, i - 1)]); }
   });
   addEventListener('pointermove', e => { st.mx = e.clientX / innerWidth - .5; st.my = e.clientY / innerHeight - .5; });
-  document.addEventListener('focusin', e => { const f = e.target.closest('.floor'); if (f && f.id !== current()) st.ty = Math.max(0, Math.min(maxY(), topOf(f.id))); });
+  document.addEventListener('focusin', e => { const f = e.target.closest('.floor'); if (f && f.id !== current()) st.tx = Math.max(0, Math.min(maxX(), leftOf(f.id))); });
 
   function current() {
-    const mid = st.y + innerHeight / 2;
-    let best = floors[floors.length - 1];
-    for (const f of floors) if (mid >= f.offsetTop && mid < f.offsetTop + f.offsetHeight) best = f;
+    const mid = st.x + innerWidth / 2;
+    let best = floors[0];
+    for (const f of floors) if (mid >= f.offsetLeft && mid < f.offsetLeft + f.offsetWidth) best = f;
     return best.id;
   }
 
   addEventListener('load', () => {
-    st.y = st.ty = maxY();
+    st.x = st.tx = 0;
     const h = location.hash.slice(1);
     setTimeout(() => { st.tz = 0; st.trx = 18; st.try = -30; if (h && h !== 'home') goto(h, false); document.body.classList.remove('intro'); }, 700);
   });
-  addEventListener('resize', () => st.ty = Math.min(st.ty, maxY()));
+  addEventListener('resize', () => st.tx = Math.min(st.tx, maxX()));
 
   let last = '';
   (function loop() {
-    st.y += (st.ty - st.y) * .075; st.z += (st.tz - st.z) * .045;
+    st.x += (st.tx - st.x) * .075; st.z += (st.tz - st.z) * .045;
     st.rx += (st.trx - st.rx) * .06; st.ry += (st.try - st.ry) * .04;
-    const ry = st.ry + st.mx * 6, rx = st.rx - st.my * 3;
-    cam.style.transform = `translate3d(0,${(-st.y).toFixed(1)}px,${st.z.toFixed(1)}px)`;
+    const ry = st.ry + st.mx * 3, rx = st.rx - st.my * 2;
+    cam.style.transform = `translate3d(${(-st.x).toFixed(1)}px,0,${st.z.toFixed(1)}px)`;
     tower.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-    tower.style.transformOrigin = `50% ${(st.y + innerHeight * .9).toFixed(0)}px`;
+    tower.style.transformOrigin = `${(st.x + innerWidth * .52).toFixed(0)}px 55%`;
     const c = current();
     if (c !== last) {
       last = c;
@@ -165,7 +165,7 @@
   const cc = document.getElementById('city'), cx = cc.getContext('2d');
   const cityPhoto = new Image();
   cityPhoto.crossOrigin = 'anonymous';
-  cityPhoto.src = 'https://images.pexels.com/photos/31931302/pexels-photo-31931302.jpeg?auto=compress&cs=tinysrgb&w=1920';
+  cityPhoto.src = 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=2400&q=90';
   cityPhoto.onload = city;
   function city() {
     const dpr = devicePixelRatio || 1;
