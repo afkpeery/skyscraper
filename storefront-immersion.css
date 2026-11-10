@@ -1,0 +1,31 @@
+/* 200BLOCK — content lives inside the storefront, not on a floating floor. */
+#tower .floor .facade{visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+#tower .floor{background:transparent!important}
+#tower .floor::before,#tower .floor::after{display:none!important}
+#interior-ui{align-items:center!important;justify-content:center!important;padding:clamp(12px,3vw,42px)!important;background:radial-gradient(ellipse at center,rgba(0,0,0,.2),rgba(0,0,0,.76));}
+#interior-ui .interior-card{width:min(1120px,96vw)!important;max-height:88vh!important;overflow:auto!important;padding:clamp(16px,2.4vw,30px)!important;background:linear-gradient(145deg,rgba(10,12,12,.97),rgba(18,17,15,.96))!important;border:1px solid rgba(207,169,111,.72)!important;box-shadow:0 28px 100px rgba(0,0,0,.86),inset 0 0 42px rgba(207,169,111,.08)!important;scrollbar-color:#8b704c #171615}
+#interior-ui .interior-kicker{display:none!important}
+#interior-ui #interior-title{font-size:clamp(18px,2vw,26px)!important;letter-spacing:.2em!important;margin:0 0 12px!important;color:#d8b77e!important}
+#interior-ui #interior-description,#interior-ui #interior-links,#interior-ui #interior-explore{display:none!important}
+#interior-ui .interior-actions{margin-top:16px!important}
+#interior-ui .interior-content{position:relative;isolation:isolate}
+#interior-ui .facade{visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:100%!important;max-width:none!important;margin:0!important;padding:clamp(14px,2vw,28px)!important;background:linear-gradient(145deg,rgba(28,27,23,.92),rgba(9,12,13,.96))!important;border:1px solid rgba(194,161,111,.48)!important;outline:1px solid rgba(255,255,255,.08)!important;box-shadow:inset 0 0 34px rgba(0,0,0,.42)!important;backdrop-filter:none!important}
+#interior-ui .facade::before{display:none!important}
+#interior-ui .facade h1,#interior-ui .facade h2{margin-bottom:12px}
+#interior-ui .facade .featured{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(220px,.8fr);gap:22px;align-items:center}
+#interior-ui .facade .billboard{display:block;min-width:0}
+#interior-ui .facade .billboard img{width:100%;max-height:360px;object-fit:cover}
+#interior-ui .wall{max-height:54vh;overflow:auto}
+#interior-ui .screens{max-height:58vh;overflow:auto}
+#interior-ui .synopsis{max-width:90ch}
+#interior-ui .windows.cast{max-height:42vh;overflow:auto}
+#interior-ui #contactForm{max-width:760px}
+#interior-ui input,#interior-ui select,#interior-ui textarea{max-width:100%}
+#interior-ui .interior-actions button.secondary{border-color:#b89b69;background:#211b15}
+@media(max-width:700px){
+ #interior-ui{padding:8px!important}
+ #interior-ui .interior-card{width:100%!important;max-height:91vh!important;padding:12px!important}
+ #interior-ui .facade{padding:12px!important}
+ #interior-ui .facade .featured{grid-template-columns:1fr}
+ #interior-ui .facade .billboard img{max-height:220px}
+}
