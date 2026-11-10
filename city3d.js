@@ -5,7 +5,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xaebdc4);
 scene.fog = new THREE.Fog(0xaebdc4, 42, 245);
 
-const camera = new THREE.PerspectiveCamera(56, innerWidth / innerHeight, .1, 420);
+const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, .1, 420);
 camera.position.set(0, 2.35, 8);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
@@ -139,6 +139,7 @@ function createStore(index, side){
  const z=-13-index*29;
  const x=side*11.7;
  group.position.set(x,0,z);
+ group.rotation.y=side===-1?Math.PI/2:-Math.PI/2;
  const face=side===-1?1:-1;
  // Older masonry upper stories and ground-floor commercial frontage
  const height=17+(index%3)*2.4;
@@ -201,7 +202,7 @@ for(let i=0;i<storeNames.length;i++){createStore(i,-1);createStore(i,1);}
 for(const side of [-1,1]){
  for(let i=0;i<11;i++){
   const z=-i*23-4, h=21+(i%4)*5.5, width=9.5+(i%3)*2;
-  const b=new THREE.Group();b.position.set(side*(18+width/2),0,z);
+  const b=new THREE.Group();b.position.set(side*(18+width/2),0,z);b.rotation.y=side===-1?Math.PI/2:-Math.PI/2;
   box(b,width,h,18,brickMat,0,h/2,0);
   for(let f=0;f<Math.floor(h/3.2);f++)for(let c=0;c<Math.floor(width/2.5);c++){
    const wx=-width/2+1.5+c*2.5, wy=2.4+f*3.1;
