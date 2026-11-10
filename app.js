@@ -101,7 +101,7 @@
   const order = ['home', 'featured', 'top-films', 'highlights', 'upcoming', 'archive', 'consultations', 'contact'];
   const navLinks = [...document.querySelectorAll('#nav nav a')];
   const floorNum = document.getElementById('floorNum');
-  const st = { y: 0, ty: 0, z: -2600, tz: -2600, rx: 22, trx: 22, ry: -28, try: -28, mx: 0, my: 0 };
+  const st = { y: 0, ty: 0, z: -2600, tz: -2600, rx: 29, trx: 29, ry: -36, try: -36, mx: 0, my: 0 };
   const maxY = () => tower.offsetHeight - innerHeight;
   const topOf = id => { const el = document.getElementById(id); return el.offsetTop + Math.min(0, (el.offsetHeight - innerHeight) / 2) - 70; };
   let tiltT;
@@ -109,9 +109,9 @@
   function goto(id, push = true) {
     if (!document.getElementById(id)) return;
     st.ty = Math.max(0, Math.min(maxY(), topOf(id)));
-    st.tz = -900; st.trx = 26;
+    st.tz = -1100; st.trx = 31; st.try = -38;
     clearTimeout(goto.t);
-    goto.t = setTimeout(() => { st.tz = 0; st.trx = 12; }, 650);
+    goto.t = setTimeout(() => { st.tz = 0; st.trx = 18; st.try = -30; }, 650);
     flash('ACTION');
     if (push) history.replaceState(null, '', '#' + id);
   }
@@ -162,7 +162,7 @@
   addEventListener('load', () => {
     st.y = st.ty = maxY();
     const h = location.hash.slice(1);
-    setTimeout(() => { st.tz = 0; st.trx = 12; st.try = -14; if (h && h !== 'home') goto(h, false); document.body.classList.remove('intro'); }, 700);
+    setTimeout(() => { st.tz = 0; st.trx = 18; st.try = -30; if (h && h !== 'home') goto(h, false); document.body.classList.remove('intro'); }, 700);
   });
   addEventListener('resize', () => st.ty = Math.min(st.ty, maxY()));
 
@@ -186,13 +186,26 @@
 
   /* Night city backdrop */
   const cc = document.getElementById('city'), cx = cc.getContext('2d');
+  const cityPhoto = new Image();
+  cityPhoto.crossOrigin = 'anonymous';
+  cityPhoto.src = 'https://images.pexels.com/photos/31931302/pexels-photo-31931302.jpeg?auto=compress&cs=tinysrgb&w=1920';
+  cityPhoto.onload = city;
   function city() {
     const dpr = devicePixelRatio || 1;
     cc.width = innerWidth * dpr; cc.height = innerHeight * dpr;
     const W = cc.width, H = cc.height;
-    const g = cx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#04050c'); g.addColorStop(.55, '#0c1022'); g.addColorStop(1, '#2a1424');
-    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    if (cityPhoto.complete && cityPhoto.naturalWidth) {
+      const scale = Math.max(W / cityPhoto.width, H / cityPhoto.height);
+      const iw = cityPhoto.width * scale, ih = cityPhoto.height * scale;
+      cx.drawImage(cityPhoto, (W - iw) / 2, (H - ih) / 2, iw, ih);
+      const shade = cx.createLinearGradient(0, 0, 0, H);
+      shade.addColorStop(0, 'rgba(2,4,8,.5)'); shade.addColorStop(.6, 'rgba(5,4,5,.18)'); shade.addColorStop(1, 'rgba(5,2,2,.5)');
+      cx.fillStyle = shade; cx.fillRect(0, 0, W, H);
+    } else {
+      const g = cx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#04050c'); g.addColorStop(.55, '#0c1022'); g.addColorStop(1, '#2a1424');
+      cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    }
     for (let i = 0; i < 220; i++) { cx.fillStyle = `rgba(255,255,255,${Math.random() * .5})`; cx.fillRect(Math.random() * W, Math.random() * H * .5, 1.2, 1.2); }
     const signs = [];
     [[.45, '#080a12', .35], [.62, '#05060c', .6], [.8, '#020307', 1]].forEach(([base, col, lit], layer) => {
