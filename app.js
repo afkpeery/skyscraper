@@ -101,7 +101,7 @@
   const order = ['home', 'featured', 'top-films', 'highlights', 'upcoming', 'archive', 'consultations', 'contact'];
   const navLinks = [...document.querySelectorAll('#nav nav a')];
   const floorNum = document.getElementById('floorNum');
-  const st = { y: 0, ty: 0, z: -2600, tz: -2600, rx: 29, trx: 29, ry: -36, try: -36, mx: 0, my: 0 };
+  const st = { y: 0, ty: 0, z: -3100, tz: -3100, rx: 29, trx: 29, ry: -36, try: -36, mx: 0, my: 0 };
   const maxY = () => tower.offsetHeight - innerHeight;
   const topOf = id => { const el = document.getElementById(id); return el.offsetTop + Math.min(0, (el.offsetHeight - innerHeight) / 2) - 70; };
   let tiltT;
