@@ -459,9 +459,9 @@ function closeInterior(after){
  if(!data){interiorState.active=false;window.__200blockInteriorOpen=false;interiorUI.classList.remove('visible');return;}
  const group=data.userData.storeGroup;
  const outside=worldPoint(group,data.userData.doorX,2.35,11.5);
- const look=worldPoint(group,0,2.5,-2.5);
+ const look=worldPoint(group,0,2.5,20);
  const fromPos=camera.position.clone(),fromLook=new THREE.Vector3();camera.getWorldDirection(fromLook);fromLook.multiplyScalar(12).add(camera.position);
- beginCameraTransition([{pos:fromPos,look:fromLook},{pos:worldPoint(group,data.userData.doorX,2.4,1.5),look},{pos:outside,look:worldPoint(group,0,2.4,-2.5)}],1250,()=>{
+ beginCameraTransition([{pos:fromPos,look:fromLook},{pos:worldPoint(group,data.userData.doorX,2.4,1.5),look},{pos:outside,look:worldPoint(group,0,2.4,20)}],1250,()=>{
   interiorState.active=false;interiorState.storeId=null;window.__200blockInteriorOpen=false;interiorUI.classList.remove('visible');
   interiorLight.intensity=0;activeInteriorLight=null;
   if(after)after();
