@@ -465,3 +465,21 @@ h2{font-size:clamp(28px,4vw,52px);color:#f1e5d0;text-shadow:0 3px 8px #000}
 #nav,#foot,#cut{z-index:10}
 #city{opacity:.12!important;pointer-events:none}
 @media(max-width:820px){#street3d{opacity:.92}.floor .facade{max-height:calc(100vh - 150px);overflow-y:auto}}
+
+
+/* REAL 3D CITY BLOCK LAYER */
+#city{display:none!important}
+#city3d{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;pointer-events:auto}
+#scene{position:fixed;inset:0;z-index:2;background:transparent!important;perspective:1100px;perspective-origin:50% 52%}
+#camera,#tower{transform-style:preserve-3d}
+#tower.city-block{background:transparent!important}
+#tower.city-block::before,#tower.city-block::after{display:none!important}
+.floor{background:linear-gradient(90deg,rgba(8,10,12,.2),rgba(8,10,12,.04) 35%,rgba(8,10,12,.2))!important;backdrop-filter:none}
+.floor::after{background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 22% 72%,rgba(0,0,0,.38))!important}
+.facade{background:linear-gradient(145deg,rgba(12,16,17,.88),rgba(25,25,22,.92))!important;border-color:#514638!important;backdrop-filter:blur(7px)}
+#nav,#foot,#cut{z-index:12}
+#nav{background:linear-gradient(180deg,rgba(7,9,10,.94),rgba(7,9,10,.62))!important}
+.floor::before{box-shadow:0 8px 20px rgba(0,0,0,.8),inset 0 0 18px rgba(215,183,125,.18)!important}
+.floor[data-store]::before{cursor:default}
+#city3d.is-ready{filter:saturate(.92) contrast(1.06)}
+@media(max-width:820px){#city3d{touch-action:pan-y}.floor{background:rgba(7,9,10,.12)!important}}
