@@ -35,3 +35,10 @@ Serve the repository root over HTTP (for example, with GitHub Pages or a local s
 
 ## Living-street polish
 The street now includes a restrained animated pedestrian layer on both sidewalks. Figures have subtle walking cycles and slow positional drift to keep the scene alive without competing with storefront content. Emissive storefront/display materials receive a gentle intensity pulse. Actor geometry and materials are shared to limit draw and allocation overhead. This is a procedural animation layer; it does not depend on external video or image assets.
+
+
+## Rainy-night atmosphere pass
+- Road asphalt now uses a wetter, more reflective material response, with shallow irregular puddles distributed along the street.
+- A lightweight reusable 3D rain-line buffer adds depth to the existing 2D rain overlay.
+- Parked vehicles now include paired warm headlamps, red rear lamps and subtle forward light pools.
+- Rain geometry is updated in place each frame to avoid per-frame object creation.
