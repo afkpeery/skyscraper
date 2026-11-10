@@ -165,7 +165,7 @@
   const cc = document.getElementById('city'), cx = cc.getContext('2d');
   const cityPhoto = new Image();
   cityPhoto.crossOrigin = 'anonymous';
-  cityPhoto.src = 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=2400&q=90';
+  cityPhoto.src = 'https://photos.zillowstatic.com/fp/db06a43d1154c51931c3df18aaeda74d-full.webp';
   cityPhoto.onload = city;
   function city() {
     const dpr = devicePixelRatio || 1;
