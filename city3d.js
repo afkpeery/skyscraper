@@ -440,7 +440,7 @@ scene.traverse(object=>{
 
 const interiorUI=document.createElement('div');
 interiorUI.id='interior-ui';
-interiorUI.innerHTML='<div class="interior-card" role="dialog" aria-modal="true" aria-labelledby="interior-title"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div class="interior-actions"><button type="button" id="interior-explore">Explore portfolio section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
+interiorUI.innerHTML='<div class="interior-card" role="dialog" aria-modal="true" aria-labelledby="interior-title"><div class="interior-kicker">200BLOCK · PRIVATE VIEWING</div><h2 id="interior-title">Storefront</h2><p id="interior-description">Step inside and explore this part of the 200Block creative collective.</p><div id="interior-links" class="interior-actions" aria-label="Featured content"></div><div class="interior-actions"><button type="button" id="interior-explore">Explore full section</button><button type="button" class="secondary" id="interior-exit">Return to street</button></div></div>';
 document.body.appendChild(interiorUI);
 const interiorCopy=[
  'A welcoming production-house lobby with a reception desk, brand wall and project displays.',
@@ -481,6 +481,14 @@ function openInterior(data){
  });
  document.getElementById('interior-title').textContent=storeNames[index];
  document.getElementById('interior-description').textContent=interiorCopy[index];
+ const links=document.getElementById('interior-links');links.replaceChildren();
+ const sectionId=['home','featured','top-films','highlights','upcoming','archive','consultations','contact'][index];
+ const section=document.getElementById(sectionId);
+ if(section){
+  const candidates=[...section.querySelectorAll('a[href]')].filter(a=>a.href&&!a.href.endsWith('#')&&!a.closest('#nav'));
+  const unique=[...new Map(candidates.map(a=>[a.href,a])).values()].slice(0,4);
+  unique.forEach((a,n)=>{const button=document.createElement('button');button.type='button';button.textContent=(a.textContent||a.getAttribute('aria-label')||'Explore content').trim().replace(/\\s+/g,' ').slice(0,48)||'Explore content';button.addEventListener('click',()=>{const floor=a.dataset.floor;closeInterior(()=>{if(floor){document.querySelector('a[data-floor="'+floor+'"]')?.click();}else{window.open(a.href,'_blank','noopener');}});});links.appendChild(button);});
+ }
  interiorUI.classList.add('visible');
 }
 function closeInterior(after){
