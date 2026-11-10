@@ -31,3 +31,7 @@ Click a storefront's glazed frontage to enter. The camera eases from the street 
 
 ## Run and verification
 Serve the repository root over HTTP (for example, with GitHub Pages or a local static server); ES modules are not expected to load from `file://`. The JavaScript files were syntax-checked after the interior implementation. A live browser/WebGL visual test has not yet been run.
+
+
+## Living-street polish
+The street now includes a restrained animated pedestrian layer on both sidewalks. Figures have subtle walking cycles and slow positional drift to keep the scene alive without competing with storefront content. Emissive storefront/display materials receive a gentle intensity pulse. Actor geometry and materials are shared to limit draw and allocation overhead. This is a procedural animation layer; it does not depend on external video or image assets.
