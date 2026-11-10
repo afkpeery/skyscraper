@@ -210,6 +210,25 @@ function recordRack(room,x,z){
   disc.rotation.x=Math.PI/2;
  }
 }
+const mediaTextureLoader=new THREE.TextureLoader();
+mediaTextureLoader.setCrossOrigin('anonymous');
+const interactiveMedia=[];
+function mediaScreen(room,x,y,z,w,h,film){
+ const material=new THREE.MeshStandardMaterial({color:0x101b24,emissive:0x16374b,emissiveIntensity:.9,roughness:.28});
+ const screen=new THREE.Mesh(new THREE.PlaneGeometry(w,h),material);
+ screen.position.set(x,y,z+.13);screen.userData.youtubeUrl=film?.id?'https://www.youtube.com/watch?v='+film.id:'https://www.youtube.com/@200block';
+ screen.userData.filmTitle=film?.title||'200Block film catalogue';
+ room.add(screen);interactiveMedia.push(screen);
+ if(film?.id)mediaTextureLoader.load('https://i.ytimg.com/vi/'+film.id+'/hqdefault.jpg',texture=>{
+  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  material.map=texture;material.color.set(0xffffff);material.emissive.set(0x000000);material.emissiveIntensity=0;material.needsUpdate=true;
+ },undefined,()=>{});
+ return screen;
+}
+function catalogue(){
+ const data=window.__200blockCatalog||{};
+ return {topFilms:data.topFilms||[],archive:data.archive||[],clips:data.clips||[]};
+}
 function buildInterior(storeGroup,index,side){
  const room=new THREE.Group();room.name='interior-'+storeIds[index]+'-'+side;storeGroup.add(room);
  const floorMat=[interiorMaterials.oak,interiorMaterials.upholstery,interiorMaterials.charcoal,interiorMaterials.tile,interiorMaterials.oak,interiorMaterials.darkOak,interiorMaterials.tile,interiorMaterials.cream][index];
@@ -239,6 +258,7 @@ function buildInterior(storeGroup,index,side){
  }else if(index===1){
   // THEATER: intimate screening room with a projection screen and tiered seats.
   screenPanel(room,0,3.55,-8.24,5.9,2.15);
+  mediaScreen(room,0,3.55,-8.24,5.55,1.82,{id:'193TXI7meKE',title:'The Last Collection'});
   for(let row=0;row<3;row++)for(let col=0;col<5;col++){
    const x=(col-2)*1.48,z=-5.7+row*1.45;
    chair(room,x,z,new THREE.MeshStandardMaterial({color:row%2?0x713b32:0x38231f,roughness:.96}));
@@ -247,6 +267,7 @@ function buildInterior(storeGroup,index,side){
  }else if(index===2){
   // CINEMA: ticket booth, illuminated film posters and reel displays.
   counter(room,-2.2,-5.8,2.4);screenPanel(room,1.7,2.6,-8.25,2.4,1.25);
+  const films=catalogue().topFilms;mediaScreen(room,1.7,2.6,-8.25,2.18,1.08,films[0]||{id:'193TXI7meKE',title:'The Last Collection'});
   for(const x of [-3,0,3])poster(room,x,3.0,-8.27,'FILM');
   for(const x of [-2.5,0,2.5]){cylinder(room,.55,.55,.08,interiorMaterials.brass,x,4.25,-8.15,24).rotation.x=Math.PI/2;cylinder(room,.13,.13,.1,interiorMaterials.charcoal,x,4.25,-8.07,16).rotation.x=Math.PI/2;}
   plant(room,3.6,-6.8);
@@ -257,6 +278,9 @@ function buildInterior(storeGroup,index,side){
    box(room,.92,1.9,.78,interiorMaterials.darkOak,x,1.15,-5.9);
    box(room,.74,.78,.06,interiorMaterials.brass,x,1.55,-5.48);
    screenPanel(room,x,1.58,-5.42,.58,.48);
+   const arcadeFilms=catalogue().topFilms;
+   const arcadeFilm=arcadeFilms.length?arcadeFilms[n%arcadeFilms.length]:{id:'193TXI7meKE',title:'The Last Collection'};
+   mediaScreen(room,x,1.58,-5.42,.52,.4,arcadeFilm);
    box(room,.66,.12,.42,interiorMaterials.upholstery,x,.88,-5.25);
    cylinder(room,.09,.09,.16,interiorMaterials.warm,x-.2,.94,-5.02,10);
    cylinder(room,.09,.09,.16,interiorMaterials.brass,x+.18,.94,-5.02,10);
@@ -565,7 +589,9 @@ renderer.domElement.addEventListener('click',e=>{
  pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);
  raycaster.setFromCamera(pointer,camera);
  const hit=raycaster.intersectObjects(interactive,false)[0];
- if(hit){openInterior(hit.object.userData);}
+ if(hit){openInterior(hit.object.userData);return;}
+ const mediaHit=raycaster.intersectObjects(interactiveMedia,false)[0];
+ if(mediaHit?.object.userData.youtubeUrl)window.open(mediaHit.object.userData.youtubeUrl,'_blank','noopener');
 });
 
 // Camera progress is driven by the existing site's smoothed scroll physics.
