@@ -42,3 +42,12 @@ The street now includes a restrained animated pedestrian layer on both sidewalks
 - A lightweight reusable 3D rain-line buffer adds depth to the existing 2D rain overlay.
 - Parked vehicles now include paired warm headlamps, red rear lamps and subtle forward light pools.
 - Rain geometry is updated in place each frame to avoid per-frame object creation.
+
+
+## YouTube catalogue connected to 3D storefronts
+- `app.js` exposes the existing curated YouTube catalogue (top films, archive and clips) as a shared browser data object; the catalogue remains authored in one place.
+- The THEATER projection screen displays the featured film, The Last Collection.
+- The CINEMA screen displays the first entry in the curated Top Films list.
+- VIDEO ARCADE cabinet screens display different entries from the Top Films list.
+- Storefront screens are clickable and open the matching film directly on YouTube. Interior content links continue to provide the full section/archive navigation.
+- Thumbnail textures load asynchronously and retain a generated screen fallback if YouTube thumbnail delivery is unavailable.
