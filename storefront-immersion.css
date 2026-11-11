@@ -39,7 +39,7 @@
 }
 #interior-ui .interior-card{
  display:flex!important;flex-direction:column!important;
- width:min(700px,47vw)!important;max-height:calc(100vh - 108px)!important;
+ width:min(700px,47vw)!important;max-height:calc(100vh - 108px)!important;overflow:hidden!important;
  align-self:stretch!important;padding:clamp(14px,1.8vw,24px)!important;
  background:linear-gradient(145deg,rgba(13,14,13,.94),rgba(9,11,12,.91))!important;
  border:1px solid rgba(207,169,111,.68)!important;
