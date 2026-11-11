@@ -1,6 +1,5 @@
 /* Mount each real portfolio section inside its matching 3D storefront interior. */
 (() => {
-  const sectionIds = ['home','featured','top-films','highlights','upcoming','archive','consultations','contact'];
   let mounted = null;
   let observer = null;
 
@@ -9,6 +8,9 @@
     const { facade, parent, next } = mounted;
     if (next && next.parentNode === parent) parent.insertBefore(facade, next);
     else parent.appendChild(facade);
+    facade.style.removeProperty('visibility');
+    facade.style.removeProperty('opacity');
+    facade.style.removeProperty('pointer-events');
     mounted = null;
   }
 
@@ -47,13 +49,27 @@
     const card = ui.querySelector('.interior-card');
     const content = document.createElement('div');
     content.className = 'interior-content';
-    const actions = card.querySelector('.interior-actions');
-    card.insertBefore(content, actions);
+    const links = card.querySelector('#interior-links');
+    card.insertBefore(content, links || card.firstChild);
     watch();
     if (ui.classList.contains('visible')) mount();
   });
   wait.observe(document.body, { childList: true, subtree: true });
-  document.addEventListener('click', event => {\n    const link = event.target.closest('#interior-ui .interior-content a[data-floor]');\n    if (!link) return;\n    event.preventDefault();\n    const destination = link.dataset.floor;\n    document.getElementById('interior-exit')?.click();\n    setTimeout(() => document.querySelector('#nav a[data-floor=\"' + destination + '\"]')?.click(), 1450);\n  });\n\n  document.addEventListener('keydown', event => {
+
+  // Capture before the main site navigation so the camera exits the room first.
+  document.addEventListener('click', event => {
+    const link = event.target.closest('#interior-ui .interior-content a[data-floor]');
+    if (!link) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const destination = link.dataset.floor;
+    document.getElementById('interior-exit')?.click();
+    setTimeout(() => {
+      document.querySelector('#nav a[data-floor="' + destination + '"]')?.click();
+    }, 1450);
+  }, true);
+
+  document.addEventListener('keydown', event => {
     if (event.key === 'Escape') setTimeout(restore, 1400);
   });
 })();
