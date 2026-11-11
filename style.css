@@ -336,7 +336,7 @@ h1,h2,h3,.title-xl,.featInfo h3{font-family:"Permanent Marker",cursive;letter-sp
 .brick .spray,.screen h3,.featInfo h3{font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.035em;text-transform:uppercase;color:#fff0dc;text-shadow:2px 3px 0 #100b08,0 0 8px rgba(0,0,0,.9);filter:none}
 
 /* 200Block — Art Deco skyscraper / exposed steel-frame realism */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Marcellus&display=swap');
+
 :root{--deco-gold:#c9ad7b;--deco-light:#f0dfbd;--floorW:min(1050px,88vw)}
 html,body{font-family:Marcellus,Georgia,serif;color:#e9e1d3}
 #scene{perspective:1050px;perspective-origin:48% 48%}
@@ -381,7 +381,7 @@ input,select,textarea{font-family:Marcellus,serif;border-radius:0;border-color:#
 
 
 /* CITY BLOCK EXPERIENCE — continuous real-world street, shopfronts and forward camera */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Marcellus&display=swap');
+
 :root{--street-width:100vw;--deco-gold:#c9ad7b;--deco-light:#f0dfbd}
 html,body{height:100%;overflow:hidden;background:#aeb7bb;font-family:Marcellus,Georgia,serif}
 #scene{perspective:1500px;perspective-origin:50% 54%;overflow:hidden;background:linear-gradient(#b9c9d0 0%,#d1d1ca 42%,#6c6a63 100%)}
