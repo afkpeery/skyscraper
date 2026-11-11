@@ -314,6 +314,12 @@ function addWallPanel(room,x,y,z,w,h,material=interiorMaterials.darkOak){
  box(room,w+.08,.045,.09,interiorMaterials.brass,x,y-h/2,z+.045,false);
  box(room,w+.08,.045,.09,interiorMaterials.brass,x,y+h/2,z+.045,false);
 }
+function addSideWallPanel(room,side,y,z,w,h,material=interiorMaterials.darkOak){
+ const x=side*4.17;
+ box(room,.075,h,w,material,x,y,z,false);
+ box(room,.09,.045,w+.08,interiorMaterials.brass,x+side*.045,y-h/2,z,false);
+ box(room,.09,.045,w+.08,interiorMaterials.brass,x+side*.045,y+h/2,z,false);
+}
 function addDeskLamp(room,x,y,z){
  box(room,.34,.045,.28,interiorMaterials.brass,x,y,z,false);
  cylinder(room,.035,.035,.38,interiorMaterials.brass,x,y+.2,z,8);
@@ -378,7 +384,7 @@ function buildInterior(storeGroup,index,side){
    }
   }
   addRug(room,0,-4.25,7.65,6.1,interiorMaterials.floorCarpet);
-  for(const side of [-1,1])for(let n=0;n<4;n++)addWallPanel(room,side*4.12,2.8,-1.7-n*1.55,.82,1.2,interiorMaterials.upholstery);
+  for(const side of [-1,1])for(let n=0;n<4;n++)addSideWallPanel(room,side,2.8,-1.7-n*1.55,.82,1.2,interiorMaterials.upholstery);
   for(const x of [-3.3,3.3])box(room,.08,2.6,.08,interiorMaterials.brass,x,1.4,-3.7,false);
   box(room,.72,.28,.62,interiorMaterials.darkOak,0,4.78,-2.7,false);
   box(room,.95,.045,.72,interiorMaterials.brass,0,4.58,-2.7,false);
@@ -447,7 +453,7 @@ function buildInterior(storeGroup,index,side){
   counter(room,0,-5.7,3.8);screenPanel(room,-1,2.65,-8.25,1.5,.9);screenPanel(room,1,2.65,-8.25,1.5,.9);
   for(const x of [-3.4,3.4])for(let y=1.2;y<4.4;y+=1.1)box(room,.12,.75,.16,interiorMaterials.upholstery,x,y,-8.22,false);
   addRug(room,0,-3.65,6.7,3.4,interiorMaterials.charcoal);
-  for(const side of [-1,1])for(let n=0;n<4;n++)addWallPanel(room,side*4.12,2.8,-1.2-n*1.65,.82,1.2,interiorMaterials.upholstery);
+  for(const side of [-1,1])for(let n=0;n<4;n++)addSideWallPanel(room,side,2.8,-1.2-n*1.65,.82,1.2,interiorMaterials.upholstery);
   for(const x of [-2.4,2.4]){box(room,.55,.12,.45,interiorMaterials.darkOak,x,1.8,-5.68,false);box(room,.48,.62,.08,interiorMaterials.charcoal,x,2.18,-5.68,false);}
   cylinder(room,.06,.06,2.3,interiorMaterials.charcoal,2.65,1.2,-3.2,10);
   for(let a=0;a<3;a++)box(room,.06,1.1,.06,interiorMaterials.charcoal,2.65+Math.cos(a*2.1)*.45,.55,-3.2+Math.sin(a*2.1)*.45);
