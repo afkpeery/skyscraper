@@ -29,8 +29,16 @@ Click a storefront's glazed frontage to enter. The camera eases from the street 
 - `style.css` — storefront information card, responsive layout and WebGL fallback styling.
 - `index.html` — loads the existing portfolio and Three.js module.
 
+## Detailed storefront interior pass
+
+The eight businesses now have distinct interior finishes and practical details rather than a shared blank room: wood reception flooring and a brass-trimmed waiting area for 200BLOCK; carpet, stepped seating and acoustic treatment in THEATER; terrazzo/tile, ticket counter and film-reel/concession details in CINEMA; individual illuminated cabinets and controls in VIDEO ARCADE; storyboard boards and worktable lighting in PROJECTS; vinyl shelving, record bins and a listening turntable in RECORD SHOP; acoustic wall treatment and edit stations in STUDIO; and a warmer reception lounge in CONTACT.
+
+Shared procedural wood, tile, carpet and terrazzo maps keep the rooms visually varied without requiring downloaded texture assets. Reusable geometry, cached catalogue thumbnails, warm pendant/sconce fixtures, clear-coated shop glass and narrow reflection highlights add depth while keeping repeated storefronts inexpensive. The camera still enters through the physical doorway and eases back out; its street position is resynchronized after exit to avoid a camera snap.
+
+The section content is mounted into a restrained side console on desktop and a lower panel on mobile so the 3D room remains visible around it. The Three.js engine is loaded through a guarded dynamic import; a failed CDN import, failed WebGL initialization or lost WebGL context exposes the original HTML portfolio instead. Mobile rendering uses a lower pixel-ratio cap and disables real-time shadow maps on narrow screens.
+
 ## Run and verification
-Serve the repository root over HTTP (for example, with GitHub Pages or a local static server); ES modules are not expected to load from `file://`. The JavaScript files were syntax-checked after the interior implementation. A live browser/WebGL visual test has not yet been run.
+Serve the repository root over HTTP (for example, with GitHub Pages or a local static server); ES modules are not expected to load from `file://`. The JavaScript files were parser-checked after the interior implementation. This repository has no package.json or declared build/lint scripts, so no npm build or lint command is available. A live browser/WebGL visual test has not yet been run.
 
 
 ## Living-street polish
