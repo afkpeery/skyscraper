@@ -266,6 +266,7 @@ const mediaTextureWaiters=new Map();
 const interactiveMedia=[];
 function mediaScreen(room,x,y,z,w,h,film){
  const material=new THREE.MeshStandardMaterial({color:0x101b24,emissive:0x16374b,emissiveIntensity:.9,roughness:.28});
+ material.userData.mediaScreen=true;
  const screen=new THREE.Mesh(new THREE.PlaneGeometry(w,h),material);
  screen.position.set(x,y,z+.13);screen.userData.youtubeUrl=film?.id?'https://www.youtube.com/watch?v='+film.id:'https://www.youtube.com/@200block';
  screen.userData.filmTitle=film?.title||'200Block film catalogue';
@@ -635,9 +636,11 @@ function pedestrian(x,z,index){
 for(let i=0;i<8;i++){
  pedestrian(i%2?-5.55:5.55,-14-i*27,i);
 }
+const displayMaterialSet=new Set();
 scene.traverse(object=>{
- if(object.isMesh&&object.material&&object.material.emissive&&object.material.emissiveIntensity>.55)displayMaterials.push(object.material);
+ if(object.isMesh&&object.material&&object.material.emissive&&object.material.emissiveIntensity>.55&&!object.material.userData.mediaScreen)displayMaterialSet.add(object.material);
 });
+for(const material of displayMaterialSet)displayMaterials.push(material);
 
 // Lightweight 3D rain streaks add depth beyond the existing 2D screen rain.
 const rainCount=520;
