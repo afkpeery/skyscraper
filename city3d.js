@@ -1,4 +1,11 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+let THREE = null;
+try {
+  THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+} catch (error) {
+  document.documentElement.classList.add('webgl-unavailable');
+  console.warn('200Block 3D engine unavailable; using the accessible portfolio fallback.', error);
+}
+if (THREE) {
 
 /* 200Block: procedural, real-time 3D New York street. */
 const scene = new THREE.Scene();
@@ -9,14 +16,20 @@ const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, .1, 420
 camera.position.set(0, 2.35, 8);
 const renderer = (() => { try { return new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (error) { document.documentElement.classList.add('webgl-unavailable'); console.warn('200Block 3D scene unavailable; retaining the 2D portfolio fallback.', error); return null; } })();
 if (!renderer) { /* The existing photographic city canvas and HTML portfolio remain usable. */ } else {
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
+const renderPixelRatio = () => Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.15 : 1.55);
+renderer.setPixelRatio(renderPixelRatio());
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = innerWidth >= 760;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.12;
 renderer.domElement.id = 'street3d';
+renderer.domElement.addEventListener('webglcontextlost', event => {
+ event.preventDefault();
+ document.documentElement.classList.add('webgl-unavailable');
+ console.warn('200Block WebGL context lost; showing the HTML portfolio fallback.');
+});
 document.getElementById('scene').prepend(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xdce8ee, 0x33271f, 2.0));
@@ -80,7 +93,8 @@ photoLoader.load('https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?a
 const concreteMat = new THREE.MeshStandardMaterial({map:concreteMap,roughness:.96});
 const asphaltMat = new THREE.MeshStandardMaterial({map:asphaltMap,roughness:.34,metalness:.22,envMapIntensity:.8});
 const darkMetal = new THREE.MeshStandardMaterial({color:0x242729,metalness:.72,roughness:.48});
-const glassMat = new THREE.MeshPhysicalMaterial({color:0x8ca9b5,metalness:.34,roughness:.13,transparent:true,opacity:.48,reflectivity:.9});
+const glassMat = new THREE.MeshPhysicalMaterial({color:0x8ca9b5,metalness:.34,roughness:.13,transparent:true,opacity:.48,reflectivity:.9,clearcoat:1,clearcoatRoughness:.08});
+const glassHighlightMat = new THREE.MeshBasicMaterial({color:0xe7f0f2,transparent:true,opacity:.13,depthWrite:false,side:THREE.DoubleSide});
 const trimMat = new THREE.MeshStandardMaterial({color:0x282522,metalness:.3,roughness:.62});
 const brassMat = new THREE.MeshStandardMaterial({color:0xb79a69,metalness:.72,roughness:.3});
 
@@ -156,18 +170,53 @@ function addFireEscape(group, x, y, z){
  }
 }
 
+const interiorMaps = {
+ wood:canvasTexture((c,w,h)=>{
+  c.fillStyle='#563a2a';c.fillRect(0,0,w,h);
+  for(let y=0;y<h;y+=42){
+   c.fillStyle=y%84?'#765035':'#68462f';c.fillRect(0,y,w,40);
+   for(let x=(y%84?0:125);x<w;x+=128){c.fillStyle='rgba(25,15,10,.34)';c.fillRect(x,y,2,40);}
+   c.strokeStyle='rgba(235,190,135,.12)';c.beginPath();c.moveTo(0,y+3);c.lineTo(w,y+3);c.stroke();
+  }
+  for(let i=0;i<500;i++){c.fillStyle='rgba(20,12,8,.12)';c.fillRect(Math.random()*w,Math.random()*h,12+Math.random()*34,1);}
+ },2,4),
+ tile:canvasTexture((c,w,h)=>{
+  c.fillStyle='#68645d';c.fillRect(0,0,w,h);
+  for(let y=0;y<h;y+=128)for(let x=0;x<w;x+=128){
+   c.fillStyle=(x/128+y/128)%2?'#77736b':'#5d5a54';c.fillRect(x+3,y+3,122,122);
+   c.strokeStyle='rgba(235,220,190,.3)';c.lineWidth=3;c.strokeRect(x+2,y+2,124,124);
+  }
+ },4,5),
+ carpet:canvasTexture((c,w,h)=>{
+  c.fillStyle='#302522';c.fillRect(0,0,w,h);
+  for(let i=0;i<18000;i++){const v=35+Math.random()*55;c.fillStyle='rgba('+v+','+(v*.72|0)+','+(v*.62|0)+',.24)';c.fillRect(Math.random()*w,Math.random()*h,1.4,1.4);}
+  c.strokeStyle='rgba(190,150,105,.16)';c.lineWidth=5;c.strokeRect(12,12,w-24,h-24);
+ },3,4),
+ terrazzo:canvasTexture((c,w,h)=>{
+  c.fillStyle='#b7aa95';c.fillRect(0,0,w,h);
+  for(let i=0;i<2600;i++){const colors=['#645d53','#88745f','#d8c9ae','#403f3b','#9a6550'];c.fillStyle=colors[i%colors.length];c.globalAlpha=.3+Math.random()*.45;c.beginPath();c.ellipse(Math.random()*w,Math.random()*h,1+Math.random()*4,1+Math.random()*2,Math.random()*Math.PI,0,Math.PI*2);c.fill();}
+  c.globalAlpha=1;
+ },3,4)
+};
 const interiorMaterials = {
-  oak:new THREE.MeshStandardMaterial({color:0x68452f,roughness:.78}),
+  oak:new THREE.MeshStandardMaterial({map:interiorMaps.wood,roughness:.74}),
   darkOak:new THREE.MeshStandardMaterial({color:0x30241d,roughness:.72}),
   plaster:new THREE.MeshStandardMaterial({color:0xb6a58d,roughness:.94}),
   charcoal:new THREE.MeshStandardMaterial({color:0x24282a,roughness:.9}),
-  tile:new THREE.MeshStandardMaterial({color:0x68635b,roughness:.92}),
+  tile:new THREE.MeshStandardMaterial({map:interiorMaps.tile,roughness:.82}),
   brass:new THREE.MeshStandardMaterial({color:0xb69a6a,metalness:.7,roughness:.32}),
-  upholstery:new THREE.MeshStandardMaterial({color:0x55362f,roughness:.95}),
+  upholstery:new THREE.MeshStandardMaterial({map:interiorMaps.carpet,color:0xffffff,roughness:.96}),
   cream:new THREE.MeshStandardMaterial({color:0xd8c7aa,roughness:.86}),
   screen:new THREE.MeshStandardMaterial({color:0x101b24,emissive:0x16374b,emissiveIntensity:.9,roughness:.3}),
   warm:new THREE.MeshStandardMaterial({color:0xffd49b,emissive:0xffa94e,emissiveIntensity:1.35,roughness:.4}),
-  green:new THREE.MeshStandardMaterial({color:0x315044,roughness:.9})
+  green:new THREE.MeshStandardMaterial({color:0x315044,roughness:.9}),
+  floorWood:new THREE.MeshStandardMaterial({map:interiorMaps.wood,roughness:.7}),
+  floorCarpet:new THREE.MeshStandardMaterial({map:interiorMaps.carpet,roughness:.98}),
+  floorTile:new THREE.MeshStandardMaterial({map:interiorMaps.tile,roughness:.76}),
+  floorConcrete:new THREE.MeshStandardMaterial({map:concreteMap,color:0xc4beb1,roughness:.9}),
+  floorTerrazzo:new THREE.MeshStandardMaterial({map:interiorMaps.terrazzo,roughness:.62}),
+  floorRubber:new THREE.MeshStandardMaterial({color:0x25282b,roughness:.86}),
+  floorVinyl:new THREE.MeshStandardMaterial({map:interiorMaps.wood,color:0x6a5949,roughness:.55,metalness:.08})
 };
 function cylinder(parent,rTop,rBottom,h,material,x,y,z,segments=12){
  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(rTop,rBottom,h,segments),material);
@@ -191,10 +240,10 @@ function counter(room,x,z,w=3){
  box(room,w-.2,.08,.04,interiorMaterials.oak,x,.38,z+.43);
  screenPanel(room,x,1.85,z-.22,.72,.42);
 }
-function chair(room,x,z,material=interiorMaterials.upholstery){
- box(room,.85,.18,.78,material,x,.72,z);
- box(room,.85,.9,.16,material,x,1.2,z-.34);
- for(const dx of [-.32,.32])for(const dz of [-.27,.27])box(room,.07,.65,.07,interiorMaterials.darkOak,x+dx,.36,z+dz);
+function chair(room,x,z,material=interiorMaterials.upholstery,lift=0){
+ box(room,.85,.18,.78,material,x,.72+lift,z);
+ box(room,.85,.9,.16,material,x,1.2+lift,z-.34);
+ for(const dx of [-.32,.32])for(const dz of [-.27,.27])box(room,.07,.65,.07,interiorMaterials.darkOak,x+dx,.36+lift,z+dz);
 }
 function poster(room,x,y,z,label){
  box(room,1.12,1.58,.09,interiorMaterials.brass,x,y,z);
@@ -212,6 +261,8 @@ function recordRack(room,x,z){
 }
 const mediaTextureLoader=new THREE.TextureLoader();
 mediaTextureLoader.setCrossOrigin('anonymous');
+const mediaTextureCache=new Map();
+const mediaTextureWaiters=new Map();
 const interactiveMedia=[];
 function mediaScreen(room,x,y,z,w,h,film){
  const material=new THREE.MeshStandardMaterial({color:0x101b24,emissive:0x16374b,emissiveIntensity:.9,roughness:.28});
@@ -219,19 +270,70 @@ function mediaScreen(room,x,y,z,w,h,film){
  screen.position.set(x,y,z+.13);screen.userData.youtubeUrl=film?.id?'https://www.youtube.com/watch?v='+film.id:'https://www.youtube.com/@200block';
  screen.userData.filmTitle=film?.title||'200Block film catalogue';
  room.add(screen);interactiveMedia.push(screen);
- if(film?.id)mediaTextureLoader.load('https://i.ytimg.com/vi/'+film.id+'/hqdefault.jpg',texture=>{
-  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
-  material.map=texture;material.color.set(0xffffff);material.emissive.set(0x000000);material.emissiveIntensity=0;material.needsUpdate=true;
- },undefined,()=>{});
+ if(film?.id){
+  const applyTexture=texture=>{material.map=texture;material.color.set(0xffffff);material.emissive.set(0x000000);material.emissiveIntensity=0;material.needsUpdate=true;};
+  const cached=mediaTextureCache.get(film.id);
+  if(cached)applyTexture(cached);
+  else if(mediaTextureWaiters.has(film.id))mediaTextureWaiters.get(film.id).push(applyTexture);
+  else{
+   mediaTextureWaiters.set(film.id,[applyTexture]);
+   mediaTextureLoader.load('https://i.ytimg.com/vi/'+film.id+'/hqdefault.jpg',texture=>{
+    texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+    mediaTextureCache.set(film.id,texture);
+    for(const update of mediaTextureWaiters.get(film.id)||[])update(texture);
+    mediaTextureWaiters.delete(film.id);
+   },undefined,()=>{mediaTextureWaiters.delete(film.id);});
+  }
+ }
  return screen;
 }
 function catalogue(){
  const data=window.__200blockCatalog||{};
  return {topFilms:data.topFilms||[],archive:data.archive||[],clips:data.clips||[]};
 }
+function addRug(room,x,z,w,d,material=interiorMaterials.upholstery){
+ box(room,w,.025,d,material,x,.285,z,false);
+ for(const edge of [-1,1]){
+  box(room,w+.06,.018,.045,interiorMaterials.brass,x,.307,z+edge*(d/2-.05),false);
+  box(room,.045,.018,d,interiorMaterials.brass,x+edge*(w/2-.05),.307,z,false);
+ }
+}
+function addPendant(room,x,z){
+ box(room,.42,.055,.42,interiorMaterials.brass,x,5.28,z,false);
+ cylinder(room,.018,.018,.78,interiorMaterials.brass,x,4.85,z,8);
+ cylinder(room,.19,.28,.22,interiorMaterials.warm,x,4.35,z,14);
+ const light=new THREE.PointLight(0xffc184,8.5,12,2);light.position.set(x,4.25,z);room.add(light);
+}
+function addSconce(room,x,y,z){
+ box(room,.2,.48,.12,interiorMaterials.brass,x,y,z,false);
+ cylinder(room,.1,.15,.2,interiorMaterials.warm,x,y,z+.12,12);
+ box(room,.3,.045,.16,interiorMaterials.brass,x,y-.28,z+.08,false);
+}
+function addWallPanel(room,x,y,z,w,h,material=interiorMaterials.darkOak){
+ box(room,w,h,.075,material,x,y,z,false);
+ box(room,w+.08,.045,.09,interiorMaterials.brass,x,y-h/2,z+.045,false);
+ box(room,w+.08,.045,.09,interiorMaterials.brass,x,y+h/2,z+.045,false);
+}
+function addDeskLamp(room,x,y,z){
+ box(room,.34,.045,.28,interiorMaterials.brass,x,y,z,false);
+ cylinder(room,.035,.035,.38,interiorMaterials.brass,x,y+.2,z,8);
+ const shade=new THREE.Mesh(new THREE.ConeGeometry(.2,.2,12),interiorMaterials.warm);shade.position.set(x,y+.43,z);room.add(shade);
+}
+function addShelfBay(room,x,z,w=1.65){
+ box(room,w,2.75,.42,interiorMaterials.darkOak,x,2.05,z,false);
+ for(const y of [1.05,1.82,2.59,3.36])box(room,w-.1,.065,.5,interiorMaterials.brass,x,y,z+.23,false);
+ for(let n=0;n<5;n++){
+  const sleeve=box(room,.22,.62,.055,n%2?interiorMaterials.upholstery:interiorMaterials.cream,x-w*.38+n*w*.19,1.42,z+.28,false);
+  sleeve.rotation.y=(n-2)*.035;
+ }
+}
+function addTable(room,x,z,w,d,material=interiorMaterials.oak,y=1.02){
+ box(room,w,.12,d,material,x,y,z,false);
+ for(const dx of [-w/2+.12,w/2-.12])for(const dz of [-d/2+.12,d/2-.12])box(room,.09,y-.2,.09,interiorMaterials.darkOak,x+dx,y/2,z+dz,false);
+}
 function buildInterior(storeGroup,index,side){
  const room=new THREE.Group();room.name='interior-'+storeIds[index]+'-'+side;storeGroup.add(room);
- const floorMat=[interiorMaterials.oak,interiorMaterials.upholstery,interiorMaterials.charcoal,interiorMaterials.tile,interiorMaterials.oak,interiorMaterials.darkOak,interiorMaterials.tile,interiorMaterials.cream][index];
+ const floorMat=[interiorMaterials.floorWood,interiorMaterials.floorCarpet,interiorMaterials.floorTerrazzo,interiorMaterials.floorTile,interiorMaterials.floorConcrete,interiorMaterials.floorWood,interiorMaterials.floorRubber,interiorMaterials.floorTerrazzo][index];
  const wallMat=[interiorMaterials.plaster,interiorMaterials.charcoal,interiorMaterials.charcoal,interiorMaterials.charcoal,interiorMaterials.plaster,interiorMaterials.green,interiorMaterials.charcoal,interiorMaterials.plaster][index];
  // Deep, open-front room: glazing remains transparent so the street view reads into the space.
  box(room,8.55,.18,10.4,floorMat,0,.18,-3.25);
@@ -241,6 +343,10 @@ function buildInterior(storeGroup,index,side){
  box(room,8.55,5.25,.18,wallMat,0,2.82,-8.42);
  for(const x of [-4.12,4.12])box(room,.12,.22,10.1,interiorMaterials.brass,x,.42,-3.25);
  box(room,8.3,.22,.12,interiorMaterials.brass,0,.42,-8.28);
+ for(const x of [-4.17,4.17])box(room,.075,1.05,9.55,interiorMaterials.darkOak,x,.95,-3.25,false);
+ box(room,8.18,.045,.08,interiorMaterials.brass,0,.31,-8.2,false);
+ addPendant(room,0,-3.55);
+ addSconce(room,-3.72,3.35,-8.25);addSconce(room,3.72,3.35,-8.25);
  // Ceiling beams and practical fixtures create visible depth through the shop windows.
  for(const z of [-1.2,-4.2,-7.3]){
   box(room,8.1,.12,.16,interiorMaterials.darkOak,0,5.34,z);
@@ -254,22 +360,38 @@ function buildInterior(storeGroup,index,side){
   // 200BLOCK lobby: reception, brand wall, monitor and waiting lounge.
   counter(room,0,-5.65,3.6);screenPanel(room,0,3.0,-8.25,2.8,1.15);
   chair(room,-2.25,-2.9);chair(room,2.25,-2.9);plant(room,-3.55,-6.9);plant(room,3.55,-6.9);
+  addRug(room,0,-2.85,5.8,2.35,interiorMaterials.upholstery);
+  addTable(room,0,-3.55,1.35,.78,interiorMaterials.darkOak,1.0);
+  addDeskLamp(room,-1.05,1.4,-5.18);
+  for(let n=0;n<10;n++)box(room,.045,2.45,.06,interiorMaterials.brass,4.14,2.7,-6.55+n*.48,false);
   poster(room,-2.6,3.05,-8.28,'200BLOCK');poster(room,2.6,3.05,-8.28,'PRODUCTION');
  }else if(index===1){
   // THEATER: intimate screening room with a projection screen and tiered seats.
   screenPanel(room,0,3.55,-8.24,5.9,2.15);
   mediaScreen(room,0,3.55,-8.24,5.55,1.82,{id:'193TXI7meKE',title:'The Last Collection'});
-  for(let row=0;row<3;row++)for(let col=0;col<5;col++){
-   const x=(col-2)*1.48,z=-5.7+row*1.45;
-   chair(room,x,z,new THREE.MeshStandardMaterial({color:row%2?0x713b32:0x38231f,roughness:.96}));
+  for(let row=0;row<3;row++){
+   const z=-5.7+row*1.45,lift=row*.15;
+   box(room,7.45,.16,1.12,interiorMaterials.charcoal,0,.34+lift,z,false);
+   for(let col=0;col<5;col++){
+    const x=(col-2)*1.48;
+    chair(room,x,z,new THREE.MeshStandardMaterial({color:row%2?0x713b32:0x38231f,roughness:.96}),lift);
+   }
   }
-  for(const x of [-3.3,3.3])box(room,.08,2.6,.08,interiorMaterials.brass,x,1.4,-3.7);
+  addRug(room,0,-4.25,7.65,6.1,interiorMaterials.floorCarpet);
+  for(const side of [-1,1])for(let n=0;n<4;n++)addWallPanel(room,side*4.12,2.8,-1.7-n*1.55,.82,1.2,interiorMaterials.upholstery);
+  for(const x of [-3.3,3.3])box(room,.08,2.6,.08,interiorMaterials.brass,x,1.4,-3.7,false);
+  box(room,.72,.28,.62,interiorMaterials.darkOak,0,4.78,-2.7,false);
+  box(room,.95,.045,.72,interiorMaterials.brass,0,4.58,-2.7,false);
  }else if(index===2){
   // CINEMA: ticket booth, illuminated film posters and reel displays.
   counter(room,-2.2,-5.8,2.4);screenPanel(room,1.7,2.6,-8.25,2.4,1.25);
   const films=catalogue().topFilms;mediaScreen(room,1.7,2.6,-8.25,2.18,1.08,films[0]||{id:'193TXI7meKE',title:'The Last Collection'});
   for(const x of [-3,0,3])poster(room,x,3.0,-8.27,'FILM');
   for(const x of [-2.5,0,2.5]){cylinder(room,.55,.55,.08,interiorMaterials.brass,x,4.25,-8.15,24).rotation.x=Math.PI/2;cylinder(room,.13,.13,.1,interiorMaterials.charcoal,x,4.25,-8.07,16).rotation.x=Math.PI/2;}
+  addRug(room,0,-2.85,6.8,2.2,interiorMaterials.floorTile);
+  box(room,2.1,.1,.85,interiorMaterials.cream,-2.2,1.35,-5.8,false);
+  for(const x of [-2.85,-2.2,-1.55])cylinder(room,.12,.12,.35,interiorMaterials.warm,x,1.58,-5.78,12);
+  box(room,2.3,.9,.12,interiorMaterials.charcoal,0,4.65,-8.22,false);
   plant(room,3.6,-6.8);
  }else if(index===3){
   // VIDEO ARCADE: glowing cabinets, control decks and a social bench.
@@ -282,8 +404,12 @@ function buildInterior(storeGroup,index,side){
    const arcadeFilm=arcadeFilms.length?arcadeFilms[n%arcadeFilms.length]:{id:'193TXI7meKE',title:'The Last Collection'};
    mediaScreen(room,x,1.58,-5.42,.52,.4,arcadeFilm);
    box(room,.66,.12,.42,interiorMaterials.upholstery,x,.88,-5.25);
+   box(room,.8,.2,.12,interiorMaterials.warm,x,2.18,-5.86,false);
+   box(room,.76,.12,.4,interiorMaterials.darkOak,x,.98,-5.05,false);
+   cylinder(room,.055,.055,.18,interiorMaterials.brass,x-.2,1.09,-5.02,10);
    cylinder(room,.09,.09,.16,interiorMaterials.warm,x-.2,.94,-5.02,10);
    cylinder(room,.09,.09,.16,interiorMaterials.brass,x+.18,.94,-5.02,10);
+   cylinder(room,.055,.055,.08,interiorMaterials.warm,x+.02,1.08,-5.03,10);
   }
   box(room,5.8,.55,1.1,interiorMaterials.upholstery,0,.48,-2.8);
   for(const x of [-3.3,3.3])poster(room,x,3.15,-8.27,'ARCADE');
@@ -293,7 +419,14 @@ function buildInterior(storeGroup,index,side){
   for(const x of [-2.7,-.9,.9,2.7])poster(room,x,3.2,-8.27,'FRAME');
   screenPanel(room,0,2.15,-8.25,2.4,1.05);
   for(const x of [-2.2,2.2])chair(room,x,-2.4);
-  box(room,3.4,.12,1.7,interiorMaterials.oak,0,1.05,-3.8);
+  addRug(room,0,-3.55,5.4,2.35,interiorMaterials.floorTile);
+  addTable(room,0,-3.8,3.4,1.7,interiorMaterials.oak,1.12);
+  for(const x of [-1.8,-.6,.6,1.8]){
+   box(room,.72,.56,.05,interiorMaterials.cream,x,3.15,-8.13,false);
+   box(room,.58,.06,.03,interiorMaterials.brass,x,3.38,-8.08,false);
+   box(room,.42,.24,.03,interiorMaterials.upholstery,x,3.12,-8.08,false);
+  }
+  addDeskLamp(room,-1.2,1.65,-3.15);addDeskLamp(room,1.2,1.65,-3.15);
   plant(room,-3.6,-6.9);
  }else if(index===5){
   // RECORD SHOP: wall shelving, record bins, listening station and album displays.
@@ -303,11 +436,19 @@ function buildInterior(storeGroup,index,side){
    for(let n=0;n<5;n++)box(room,.22,.85,.12,n%2?interiorMaterials.upholstery:interiorMaterials.cream,x-.6+n*.3,1.7,-7.42);
   }
   recordRack(room,-2.3,-3.8);recordRack(room,0,-3.8);recordRack(room,2.3,-3.8);
+  addRug(room,0,-3.25,7.1,3.2,interiorMaterials.upholstery);
+  addShelfBay(room,-3.2,-7.95,1.45);addShelfBay(room,0,-7.95,1.45);addShelfBay(room,3.2,-7.95,1.45);
   counter(room,0,-6.2,2.2);
+  cylinder(room,.34,.34,.07,interiorMaterials.charcoal,0,1.43,-6.05,24);
+  cylinder(room,.12,.12,.025,interiorMaterials.brass,0,1.48,-6.05,20);
+  cylinder(room,.025,.025,.3,interiorMaterials.brass,.23,1.58,-6.05,8);
  }else if(index===6){
   // STUDIO: editing desk, cinema camera, tripod, softbox and acoustic panels.
   counter(room,0,-5.7,3.8);screenPanel(room,-1,2.65,-8.25,1.5,.9);screenPanel(room,1,2.65,-8.25,1.5,.9);
-  for(const x of [-3.4,3.4])for(let y=1.2;y<4.4;y+=1.1)box(room,.12,.75,.16,interiorMaterials.upholstery,x,y,-8.22);
+  for(const x of [-3.4,3.4])for(let y=1.2;y<4.4;y+=1.1)box(room,.12,.75,.16,interiorMaterials.upholstery,x,y,-8.22,false);
+  addRug(room,0,-3.65,6.7,3.4,interiorMaterials.charcoal);
+  for(const side of [-1,1])for(let n=0;n<4;n++)addWallPanel(room,side*4.12,2.8,-1.2-n*1.65,.82,1.2,interiorMaterials.upholstery);
+  for(const x of [-2.4,2.4]){box(room,.55,.12,.45,interiorMaterials.darkOak,x,1.8,-5.68,false);box(room,.48,.62,.08,interiorMaterials.charcoal,x,2.18,-5.68,false);}
   cylinder(room,.06,.06,2.3,interiorMaterials.charcoal,2.65,1.2,-3.2,10);
   for(let a=0;a<3;a++)box(room,.06,1.1,.06,interiorMaterials.charcoal,2.65+Math.cos(a*2.1)*.45,.55,-3.2+Math.sin(a*2.1)*.45);
   box(room,.65,.5,.48,interiorMaterials.darkOak,2.65,2.35,-3.2);
@@ -317,6 +458,12 @@ function buildInterior(storeGroup,index,side){
   // CONTACT: warm reception lounge with seating, plants and a meeting table.
   counter(room,0,-6.2,3.2);chair(room,-2.3,-3.4);chair(room,2.3,-3.4);
   box(room,2.4,.16,1.3,interiorMaterials.oak,0,.85,-3.4);
+  addRug(room,0,-3.55,6.1,3.25,interiorMaterials.upholstery);
+  box(room,2.55,.62,.82,interiorMaterials.upholstery,0,.85,-2.1,false);
+  box(room,2.55,.16,.86,interiorMaterials.darkOak,0,1.24,-2.1,false);
+  addTable(room,0,-4.0,1.65,.9,interiorMaterials.oak,.82);
+  cylinder(room,.06,.06,2.2,interiorMaterials.brass,-3.35,1.3,-3.0,10);
+  cylinder(room,.36,.28,.08,interiorMaterials.warm,-3.35,2.42,-3.0,16);
   plant(room,-3.5,-6.9);plant(room,3.5,-6.9);
   poster(room,-2.7,3.0,-8.27,'HELLO');poster(room,2.7,3.0,-8.27,'CONTACT');
  }
@@ -350,9 +497,15 @@ function createStore(index, side){
  box(group,1.12,3.05,.08,glassMat,doorX,1.98,2.08);
  box(group,.09,3.08,.1,brassMat,doorX-.53,1.98,2.14);
  box(group,.09,3.08,.1,brassMat,doorX+.53,1.98,2.14);
+ box(group,.045,.62,.08,brassMat,doorX+.34,1.98,2.2,false);
+ const doorGlint=new THREE.Mesh(new THREE.PlaneGeometry(.1,2.65),glassHighlightMat);doorGlint.position.set(doorX-.34,1.98,2.18);group.add(doorGlint);
  const winX=side===-1?-1.35:1.35;
  box(group,3.6,3.05,.18,trimMat,winX,2,1.95);
  box(group,3.35,2.8,.06,glassMat,winX,2.02,2.08);
+ for(const offset of [-1.12,1.12]){
+  const reflection=new THREE.Mesh(new THREE.PlaneGeometry(.16,2.62),glassHighlightMat);
+  reflection.position.set(winX+offset,2.02,2.17);group.add(reflection);
+ }
  for(const dx of [-1.1,0,1.1])box(group,.045,2.78,.08,brassMat,winX+dx,2.02,2.14);
  box(group,3.42,.08,.09,brassMat,winX,2.02,2.16);
  // Deep sign box projects above the storefront
@@ -564,6 +717,8 @@ function closeInterior(after){
  beginCameraTransition([{pos:fromPos,look:fromLook},{pos:worldPoint(group,data.userData.doorX,2.4,1.5),look},{pos:outside,look:worldPoint(group,0,2.4,20)}],1250,()=>{
   interiorState.active=false;interiorState.storeId=null;window.__200blockInteriorOpen=false;interiorUI.classList.remove('visible');
   interiorLight.intensity=0;activeInteriorLight=null;
+  currentZ=camera.position.z;targetZ=currentZ;
+  currentLookX=camera.position.x;targetLookX=currentLookX;
   if(after)after();
  });
 }
@@ -597,7 +752,7 @@ renderer.domElement.addEventListener('click',e=>{
 // Camera progress is driven by the existing site's smoothed scroll physics.
 const clock=new THREE.Clock();
 let targetZ=8, currentZ=8, targetLookX=0, currentLookX=0;
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.65));}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(renderPixelRatio());renderer.shadowMap.enabled=innerWidth>=760;}
 addEventListener('resize',resize);
 function animate(){
  requestAnimationFrame(animate);
@@ -631,4 +786,5 @@ function animate(){
  renderer.render(scene,camera);
 }
 animate();
+}
 }
