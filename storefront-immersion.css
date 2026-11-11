@@ -29,3 +29,57 @@
  #interior-ui .facade .featured{grid-template-columns:1fr}
  #interior-ui .facade .billboard img{max-height:220px}
 }
+
+
+/* Storefront interiors: keep the 3D room visible while the real section content sits in a discreet side console. */
+#interior-ui{
+ align-items:stretch!important;justify-content:flex-end!important;
+ padding:82px clamp(14px,2.4vw,38px) 22px!important;
+ background:linear-gradient(90deg,transparent 20%,rgba(0,0,0,.08) 43%,rgba(0,0,0,.38) 62%,rgba(0,0,0,.72) 100%)!important;
+}
+#interior-ui .interior-card{
+ display:flex!important;flex-direction:column!important;
+ width:min(700px,47vw)!important;max-height:calc(100vh - 108px)!important;
+ align-self:stretch!important;padding:clamp(14px,1.8vw,24px)!important;
+ background:linear-gradient(145deg,rgba(13,14,13,.94),rgba(9,11,12,.91))!important;
+ border:1px solid rgba(207,169,111,.68)!important;
+ box-shadow:0 22px 70px rgba(0,0,0,.7),inset 0 0 32px rgba(207,169,111,.07)!important;
+}
+#interior-ui .interior-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-color:#8b704c #171615}
+#interior-ui .interior-content .facade{width:100%!important;max-width:none!important;margin:0!important}
+#interior-ui .interior-actions{flex-shrink:0}
+#interior-ui .interior-actions button{min-height:42px}
+#interior-ui .interior-content .floor h2{font-size:clamp(22px,2.8vw,36px)}
+#interior-ui .interior-content .synopsis{max-width:76ch}
+@media(max-width:900px){
+ #interior-ui{
+  align-items:flex-end!important;justify-content:center!important;
+  padding:0 10px 10px!important;
+  background:linear-gradient(0deg,rgba(0,0,0,.91),rgba(0,0,0,.55) 48%,transparent 82%)!important;
+ }
+ #interior-ui .interior-card{width:100%!important;max-height:55vh!important;align-self:auto!important;padding:12px!important}
+ #interior-ui .interior-content .facade{padding:12px!important}
+ #interior-ui .interior-content .featured{grid-template-columns:1fr!important}
+ #interior-ui .interior-content .billboard img{max-height:190px!important}
+}
+@media(max-width:520px){
+ #interior-ui .interior-card{max-height:49vh!important}
+ #interior-ui .interior-content .window{padding:10px!important}
+ #interior-ui .interior-content .windows.cast{max-height:26vh!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #interior-ui,#interior-ui .interior-card{transition:none!important}
+}
+
+/* If Three.js cannot be imported or the WebGL context is lost, expose the original HTML portfolio. */
+html.webgl-unavailable #street3d{display:none!important}
+html.webgl-unavailable #city{display:block!important;opacity:1!important}
+html.webgl-unavailable #scene{pointer-events:auto!important;z-index:4!important}
+html.webgl-unavailable #camera,html.webgl-unavailable #tower,html.webgl-unavailable #tower .floor{pointer-events:auto!important}
+html.webgl-unavailable #tower .floor{
+ background:linear-gradient(90deg,rgba(8,10,12,.9),rgba(18,17,15,.84))!important;
+}
+html.webgl-unavailable #tower .floor .facade{
+ visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+}
+html.webgl-unavailable #interior-ui{display:none!important}
